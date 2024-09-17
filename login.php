@@ -1,16 +1,17 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <?php
+session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 //Database Connection
 include('database/connection.php');
 
-session_start();
+
 //Check is the use is already logged in
 if(isset($_SESSION['email'])){
-    header("location: customer/dashboard.php");
+    header("location: ../customer/dashboard.php");
     exit;
 }
 
@@ -39,11 +40,17 @@ if (isset($_POST["login"])){
             //Password matches, store user details in session
             $_SESSION['cid'] = $row['cid'];
             $_SESSION['email'] = $email;
-            header("location:customer/dashboard.php");
+            header("location: ../customer/dashboard.php");
             exit;
-        }
-    }
+        }else {
+          echo "<script>Swal.fire('Error!', 'Invalid credentials!', 'error');</script>";
+      }
+  } else {
+      echo "<script>Swal.fire('Error!', 'No user found with that email!', 'error');</script>";
+  }
 }
+
+
 
 ?>
 
