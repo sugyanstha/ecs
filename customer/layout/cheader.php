@@ -63,13 +63,13 @@
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="myorders.php">My orders</a>
+                    <a class="nav-link active" aria-current="page" href="customer/myorders.php">My orders</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="cart.php">Shopping Cart</a>
+                    <a class="nav-link active" aria-current="page" href="customer/cart.php">Shopping Cart</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="profile.php">My Profile</a>
+                    <a class="nav-link active" aria-current="page" href="customer/profile.php">My Profile</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="logout.php">Logout</a>

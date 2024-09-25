@@ -14,11 +14,18 @@ if (!isset($_SESSION['adminemail'])) {
 include('../database/connection.php');
 
 // Fetch orders using JOIN
+// $order_query = "SELECT o.order_id, o.cid AS customer_id, o.total_price, o.status, o.created_at, 
+//                 oi.order_item_id, oi.product_id, p.name AS product_name, oi.quantity, oi.price
+//                 FROM `Order` o 
+//                 JOIN OrderItems oi ON o.order_id = oi.order_id
+//                 JOIN Products p ON oi.product_id = p.product_id
+//                 ORDER BY o.order_id";
+
 $order_query = "SELECT o.order_id, o.cid AS customer_id, o.total_price, o.status, o.created_at, 
                 oi.order_item_id, oi.product_id, p.name AS product_name, oi.quantity, oi.price
-                FROM `Order` o 
-                JOIN OrderItems oi ON o.order_id = oi.order_id
-                JOIN Products p ON oi.product_id = p.product_id
+                FROM orders o 
+                JOIN orderitems oi ON o.order_id = oi.order_id
+                JOIN products p ON oi.product_id = p.product_id
                 ORDER BY o.order_id";
 $orders = mysqli_query($conn, $order_query);
 
@@ -27,11 +34,13 @@ if (!$orders) {
     die("Query Failed: " . mysqli_error($conn));
 }
 
-include('admin/layout/adminheader.php');
+include('../admin/layout/adminheader.php');
 ?>
 
+
+<link rel="stylesheet" href="../css/adminpanel.css">
 <div class="main-content">
-    <h2>Orders List</h2>
+    <h2 align="center">Orders List</h2>
     <table class="table">
         <thead>
             <tr>
@@ -60,8 +69,14 @@ include('admin/layout/adminheader.php');
                 <td><?php echo htmlspecialchars($order['total_price']); ?></td>
                 <td><?php echo htmlspecialchars($order['status']); ?></td>
                 <td>
-                    <a href="update_order.php?id=<?php echo htmlspecialchars($order['order_id']); ?>">Update</a>
-                    <a href="delete_order.php?id=<?php echo htmlspecialchars($order['order_id']); ?>" onclick="return confirm('Are you sure you want to delete this order?');">Delete</a>
+                    <form action="update_order_status.php" method="POST">
+                        <input type="hidden" name="order_id" value="<?php echo htmlspecialchars($order['order_id']); ?>">
+                        <select name="status" onchange="this.form.submit()" class="form-select">
+                            <option value="pending" <?php if ($order['status'] == 'pending') echo 'selected'; ?>>Pending</option>
+                            <option value="shipped" <?php if ($order['status'] == 'shipped') echo 'selected'; ?>>Shipped</option>
+                            <option value="completed" <?php if ($order['status'] == 'completed') echo 'selected'; ?>>Completed</option>
+                        </select>
+                    </form>
                 </td>
             </tr>
         <?php } ?>
@@ -105,7 +120,7 @@ include('admin/layout/adminheader.php');
         <!-- <li><?php //echo $category['name']; ?>  -->
             <!-- <a href="delete_category.php?id=<?php //echo $category['category_id']; ?>">Delete</a> -->
         <!-- </li> -->
-    <!-- <?php } ?> -->
+    <!-- <?php //} ?> -->
 <!-- </ul>
 
 </div> -->

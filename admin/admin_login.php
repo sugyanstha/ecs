@@ -27,7 +27,7 @@ if (isset($_POST['login'])) {
         $_SESSION['admin'] = true;
 
         // Redirect to the admin panel page
-        header("Location: admin_panel.php");
+        header("Location: http://localhost/ecs/admin/admin_panel.php");
         exit();
     } else {
         // Redirect to the login page with an error

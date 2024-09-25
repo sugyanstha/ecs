@@ -1,11 +1,13 @@
 <?php
 session_start();
-include('database/connection.php'); //Database Connection
+include('../database/connection.php'); //Database Connection
+// include('../admin/layout/adminheader.php');
+
 if (!isset($_SESSION['adminemail'])) {
     header("Location: admin_login.php");
 }
 
-
+//Add Product
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = $_POST['name'];
     $description = $_POST['description'];
@@ -14,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $category_id = $_POST['category_id'];
     $image_url = $_POST['image_url'];  // Handle image uploads as well
 
-    $query = "INSERT INTO Products (name, description, price, stock, category_id, image_url) VALUES ('$name', '$description', '$price', '$stock', '$category_id', '$image_url')";
+    $query = "INSERT INTO products (name, description, price, stock, category_id, image_url) VALUES ('$name', '$description', '$price', '$stock', '$category_id', '$image_url')";
     mysqli_query($conn, $query);
     header("Location: admin_panel.php");
 }
@@ -37,4 +39,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </select>
     <input type="text" name="image_url" placeholder="Image URL">
     <button type="submit">Add Product</button>
+    <button><a href="admin_panel.php">Back</a></button>
 </form>
