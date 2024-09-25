@@ -1,12 +1,3 @@
-<?php 
-include('customer/c_layout/cheader.php');
-?>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="css/bootstrap.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 <div class="container-fluid">
     <div class="row">
@@ -15,27 +6,18 @@ include('customer/c_layout/cheader.php');
             <div class="position-sticky">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">
-                            <span data-feather="home"></span>
-                            Dashboard
-                        </a>
+                        <a class="nav-link active" aria-current="page" href="#">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="user"></span>
-                            Profile
-                        </a>
+                        <a class="nav-link" href="#">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Products</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
                             <span data-feather="shopping-cart"></span>
-                            Orders
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="heart"></span>
-                            Wishlist
+                            My Orders
                         </a>
                     </li>
                     <li class="nav-item">
@@ -54,7 +36,7 @@ include('customer/c_layout/cheader.php');
                 <h1 class="h2">Customer Dashboard</h1>
             </div>
 
-            <!-- Profile Section -->
+            <!-- Profile Section
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Profile Information</h5>
@@ -65,10 +47,10 @@ include('customer/c_layout/cheader.php');
                     <p class="card-text"><strong>Address:</strong> 123 Main St, Anytown, USA</p>
                     <a href="#" class="btn btn-primary">Edit Profile</a>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Recent Orders Section -->
-            <div class="card mb-4">
+            <!-- <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Recent Orders</h5>
                 </div>
@@ -80,10 +62,10 @@ include('customer/c_layout/cheader.php');
                     </ul>
                     <a href="#" class="btn btn-primary mt-3">View All Orders</a>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Wishlist Section -->
-            <div class="card mb-4">
+            <!-- <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Wishlist</h5>
                 </div>
@@ -105,8 +87,8 @@ include('customer/c_layout/cheader.php');
             </div>
         </main>
     </div>
-</div>
+</div> -->
 
 <?php 
-include('layout/footer.php');
+// include('layout/footer.php');
 ?>
