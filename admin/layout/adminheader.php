@@ -73,7 +73,7 @@ h1{
 <!------------- FOR NAVBAR -------------->
 <section class="header">
     <nav>
-        <a href="#">
+        <a href="admin_panel.php">
             <!-- <img src="../img/JN_logo.jpg" alt="logo"> -->
             <strong>JNTHREADS</strong>
         </a>
@@ -82,7 +82,7 @@ h1{
         </div> -->
         <div class="nav-links">
             <ul>
-                <li><a href="product.php">PRODUCTS</a></li>
+                <li><a href="product_list.php">PRODUCTS</a></li>
                 <li><a href="create_category.php">CATEGORIES</a></li>
                 <li><a href="admin_panel.php">ORDERS</a></li>
                 <li><a href="#">CUSTOMERS</a></li>

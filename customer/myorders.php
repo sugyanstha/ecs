@@ -14,7 +14,7 @@ include('../customer/layout/cheader.php');
 $customer_id = $_SESSION['cid'];
 
 // SQL query to fetch the order details for the logged-in customer
-$order_query = "SELECT o.order_id, o.created_at AS order_date, o.total_price, oi.order_item_id, 
+$order_query = "SELECT o.order_id, o.created_at AS order_date, o.total_price, o.status, oi.order_item_id, 
                 oi.quantity, oi.price AS item_price, p.product_id, p.name AS product_name, 
                 p.description AS product_description, p.image_url
                 FROM `orders` o JOIN orderItems oi ON o.order_id = oi.order_id
@@ -56,14 +56,14 @@ $result = $stmt->get_result();
             <td><?php echo htmlspecialchars($order['total_price']); ?></td>
             <td><img src="<?php echo htmlspecialchars($order['image_url']); ?>" alt="Product Image" width="100"></td>
             <td><?php echo htmlspecialchars($order['order_date']); ?></td>
+            <td><?php echo htmlspecialchars($order['status']); ?></td>
+            <td>
+                <form method="post" action=" ">
+                    <input type="hidden" value="<?php echo $row['order_id']; ?>" name="orderid" />
+                    <input type="submit" value="Cancle Order" name="cancle_order" />
+                </form>
+            </td>
         </tr>
-            
-            
-                
-                
-                
-
-                
             </div>
         </div>
         <hr>

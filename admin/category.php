@@ -6,7 +6,7 @@ session_start();
 include('../database/connection.php');
 
 // Check if the user is logged in
-if (!isset($_SESSION['aid'])) {
+if (!isset($_SESSION['adminemail'])) {
     echo "You need to login first.";
     exit();
 }

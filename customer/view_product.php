@@ -1,108 +1,102 @@
 <?php
-include('customer/layout/cheader.php');
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+include($_SERVER['DOCUMENT_ROOT'] . '/ecs/customer/layout/cheader.php');
 include('../database/connection.php');
-?>
 
-<?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Check if user is logged in
+if (!isset($_SESSION['email'])) {
+    header('Location: login.php');
+    exit();
+}
 
-// session_start();
+$email = $_SESSION['email'];
 
+// Add to cart functionality
+if (isset($_POST['addtocart'])) {
+    $product_id = intval($_POST['product_id']);
+    $quantity = intval($_POST['quantity']);
 
+    // Fetch product details to verify stock
+    $stmt = $conn->prepare("SELECT name, description, price, stock FROM products WHERE product_id = ?");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $product = $result->fetch_assoc();
 
-
-//Add Guidelines (to cart)
-if(isset($_POST['addtocart'])){    //addtocart
-    $cart_id = $_POST['cart_id'];   //cart_id
-
-    // Add Guidelines
-    if (isset($_POST['addtocart'])) {     //addtocart
-        $product_id = $_POST['product_id'];    //product_id
-        $name = $_POST['name'];   //product name
-        $description = $_POST['description'];   //product description
-        $price = $_POST['price'];   //price
-        $quantity = $_POST['quantity'];   //price
-        // $image_url = $_POST['image'];   //image
-
+    if ($product['stock'] >= $quantity) {
         // Sanitize inputs
-        $name = $conn->real_escape_string($name);
-        $description = $conn->real_escape_string($description);
-        $price = $conn->real_escape_string($price);
-        // $image_url = $conn->real_escape_string($image_url);
+        $name = $conn->real_escape_string($product['name']);
+        $description = $conn->real_escape_string($product['description']);
+        $price = $conn->real_escape_string($product['price']);
 
-        // $sql = "INSERT INTO guidelines (counsellor_id, title, predicament_id, description) VALUES ('$counsellor_id', '$title', '$pid', '$description')";
-        $sql = "INSERT INTO cart (product_id, name, description, price , quantity) VALUES
-        ('$product_id', '$name', '$description', '$price', '$quantity')";
-
+        // Insert into cart
+        $sql = "INSERT INTO cart (product_id, name, description, price, quantity) VALUES ('$product_id', '$name', '$description', '$price', '$quantity')";
         if ($conn->query($sql) === TRUE) {
-            echo "<script>alert('Product addd to cart successfully')</script>";
+            echo "<script>alert('Product added to cart successfully');</script>";
             header("Location: cart.php");
-            exit;
+            exit();
         } else {
             echo "Error: " . $sql . "<br>" . $conn->error;
         }
+    } else {
+        echo "<script>alert('Insufficient stock!');</script>";
     }
 }
 
-
-// Fetch Predicament (fetch product)
-if (isset($_SESSION['product_ id'])) { // Check if $_SESSION['id'] is set
-    // $sql = "SELECT * FROM predicament";
-    $sql = "SELECT *, product.name as product_name FROM product INNER JOIN cart ON cart.product_id = product.id";
-
-    $result = $conn->query($sql);
-}
+// Fetch all products
+$sql = "SELECT product_id, name, description, price, stock, image_url FROM products";
+$result = $conn->query($sql);
 ?>
-<!-- WHERE farmer_id = '" . $_SESSION['id'] . "' -->
-<link rel="stylesheet" href="../css/table.css">
-<div class="con">
-    <h1>Products</h1>
-    <div class="table-wrapper">
-        <!-- <form action="add_guidelines.php" method="post">
-            <input type="submit" value="Add Guidelines" name="add">
-        </form> -->
-        <table class="fl-table">
-            <tbody>
-                <tr>
-                    <th width=10% >SN</th>
-                    <th width=20% >Farmer Name</th>   <!--product name-->
-                    <th width=25% >Title</th>
-                    <th width=40% >Description</th>
-                    <!-- <th>Submitted Date</th> -->
-                    <th width=10% >Action</th>
-                </tr>
-                <?php if (isset($result) && $result->num_rows > 0) { // Check if $result is set
-                    $i = 1;
-                    while ($row = $result->fetch_assoc()) { 
-                        ?>
-                        <tr>
-                            <td><?php echo $i++; ?></td>
-                            <td><?php echo $row['farmer_name']; ?></td>
-                            <td><?php echo $row['title']; ?></td>
-                            <td><?php echo $row['description']; ?></td>
-                            <!-- <td><?php //echo $row['submitted_date']; ?></td> -->
-                            <td>
-                            <!-- <form method="post" action="../counsellor/add_guidelines.php">
-                                <input type="hidden" value="<?php //echo $row['pid']; ?>" name="pid" />
-                                <input type="submit" value="Update" name="edit_guidelines" />
-                            </form> -->
 
-                            <form method="post" action="add_guidelines.php">    <!-- cart.php -->
-                                <input type="hidden" value="<?php echo $row['pid']; ?>" name="pid" />   <!-- product_id -->
-                                <input type="submit" value="Add Guidelines" name="add_guidelines" />    <!-- Add to Cart -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-5">
+    <h1 class="mb-4">Avaliable Products</h1>
+    <div class="row">
+        <?php if ($result && $result->num_rows > 0) { 
+            while ($row = $result->fetch_assoc()) { ?>
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <img src="<?php echo htmlspecialchars($row['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['name']); ?>" />
+                    <div class="card-body">
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
+                        <p class="card-text"><?php echo htmlspecialchars($row['description']); ?></p>
+                        <p class="card-text"><strong>Price: $<?php echo htmlspecialchars($row['price']); ?></strong></p>
+                        <p class="card-text">
+                            <?php if ($row['stock'] > 0): ?>
+                                <span class="text-success">In Stock: <?php echo htmlspecialchars($row['stock']); ?></span>
+                            <?php else: ?>
+                                <span class="text-danger">Out of Stock</span>
+                            <?php endif; ?>
+                        </p>
+                        <?php if ($row['stock'] > 0): ?>
+                            <form method="post" action="#">
+                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Quantity:</label>
+                                    <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="<?php echo $row['stock']; ?>" required>
+                                </div>
+                                <button type="submit" name="addtocart" class="btn btn-primary w-100">Add to Cart</button>
                             </form>
-
-                            </td>
-                        </tr>
-                    <?php }
-                } else { ?>
-                    <tr>
-                        <td colspan="5">No Product to display.</td>  <!-- No Product Found -->
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+                        <?php else: ?>
+                            <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        <?php } 
+        } else { ?>
+            <div class="col-12">
+                <p>No products available.</p>
+            </div>
+        <?php } ?>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<?php //include('customer/layout/cfooter.php'); ?>
