@@ -83,7 +83,7 @@ h1{
         <div class="nav-links">
             <ul>
                 <li><a href="product_list.php">PRODUCTS</a></li>
-                <li><a href="create_category.php">CATEGORIES</a></li>
+                <li><a href="category_list.php">CATEGORIES</a></li>
                 <li><a href="admin_panel.php">ORDERS</a></li>
                 <li><a href="#">CUSTOMERS</a></li>
                 <li><a href="admin_logout.php">LOGOUT</a></li>

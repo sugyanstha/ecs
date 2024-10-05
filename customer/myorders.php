@@ -60,13 +60,13 @@ $result = $stmt->get_result();
             <td><?php echo date('d-m-Y', strtotime($order['order_date'])); ?></td>
             <td><?php echo htmlspecialchars($order['status']); ?></td>
             <td>
-                <form method="post" action=" ">
+                <form method="post" action="cancel_order.php">
                     <input type="hidden" value="<?php echo $row['order_id']; ?>" name="orderid" />
                     <input type="submit" value="Cancle Order" name="cancle_order" />
                 </form>
             </td>
         </tr>
-            </div>
+            </div>  
         </div>
         <hr>
     <?php } ?> 

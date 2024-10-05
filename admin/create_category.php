@@ -1,18 +1,36 @@
 <?php
 session_start();
-include('../database/connection.php'); //Database Connection
-// include('../admin/layout/adminheader.php');
+//include('layout/adminheader.php'); // Database Connection
+include('../database/connection.php'); // Database Connection
 
+
+// Check if the user is logged in; redirect to login page if not
 if (!isset($_SESSION['adminemail'])) {
     header("Location: admin_login.php");
+    exit; // Ensure you exit after redirect
 }
 
-//Add Product
+// Add Product
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name = $_POST['name'];
-    $query = "INSERT INTO categories (name) VALUES ('$name')";
-    mysqli_query($conn, $query);
-    header("Location: admin_panel.php");
+    // Check if the 'name' field exists and is not empty
+    if (isset($_POST['name']) && !empty(trim($_POST['name']))) {
+        $name = trim($_POST['name']);
+
+        // Prepare the SQL statement
+        $stmt = $conn->prepare("INSERT INTO categories (name) VALUES (?)");
+        $stmt->bind_param("s", $name); // 's' indicates the type is string
+
+        // Execute the prepared statement
+        if ($stmt->execute()) {
+            header("Location: admin_panel.php");
+            exit; // Redirect after successful insertion
+        } else {
+            echo "Error: " . $stmt->error; // Handle error
+        }
+
+        // Close the prepared statement
+        $stmt->close();
+    } 
 }
 ?>
 
@@ -103,6 +121,6 @@ body {
         <label for="category">Category Name:</label>
         <input type="text" name="name" placeholder="Enter Category Name" required>
         <button type="submit">Add Category</button>
-        <button><a href="admin_panel.php">Back</a></button>
+        <button><a href="category_list.php">Back</a></button>
     </div>
 </form>
