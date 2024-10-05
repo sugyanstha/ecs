@@ -7,6 +7,7 @@ ini_set('display_errors', 1);
 
 // Database Connection
 include('database/connection.php');
+// include('layout/header.php');
 
 // Check if the user is already logged in
 if (isset($_SESSION['email'])) {

@@ -55,7 +55,7 @@ $result = $conn->query($sql);
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <div class="container mt-5">
-    <h1 class="mb-4">Avaliable Products</h1>
+    <h1 class="mb-4">Available Products</h1>
     <div class="row">
         <?php if ($result && $result->num_rows > 0) { 
             while ($row = $result->fetch_assoc()) { ?>
@@ -65,8 +65,8 @@ $result = $conn->query($sql);
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
                         <p class="card-text"><?php echo htmlspecialchars($row['description']); ?></p>
-                        <p class="card-text"><strong>Price: $<?php echo htmlspecialchars($row['price']); ?></strong></p>
-                        <p class="card-text">
+                        <p class="card-text"><strong>Price: NRs. <?php echo htmlspecialchars($row['price']); ?></strong></p>
+                        <p class="card-text"> 
                             <?php if ($row['stock'] > 0): ?>
                                 <span class="text-success">In Stock: <?php echo htmlspecialchars($row['stock']); ?></span>
                             <?php else: ?>
@@ -74,13 +74,21 @@ $result = $conn->query($sql);
                             <?php endif; ?>
                         </p>
                         <?php if ($row['stock'] > 0): ?>
-                            <form method="post" action="#">
+                            <!-- Add to Cart Form -->
+                            <form method="post" action="cart.php" class="mb-3">
                                 <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
                                 <div class="mb-3">
                                     <label for="quantity" class="form-label">Quantity:</label>
                                     <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="<?php echo $row['stock']; ?>" required>
                                 </div>
                                 <button type="submit" name="addtocart" class="btn btn-primary w-100">Add to Cart</button>
+                            </form>
+
+                            <!-- Buy Now Form (Direct Order) -->
+                            <form method="post" action="place_order.php">
+                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+                                <input type="hidden" name="quantity" value="1" min="1" max="<?php echo $row['stock']; ?>" required> <!-- Default quantity -->
+                                <button type="submit" class="btn btn-warning w-100">Buy Now</button>
                             </form>
                         <?php else: ?>
                             <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
@@ -96,6 +104,7 @@ $result = $conn->query($sql);
         <?php } ?>
     </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 

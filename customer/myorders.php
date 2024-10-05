@@ -27,9 +27,10 @@ $stmt->execute();
 $result = $stmt->get_result();
 ?>
 
+
 <!-- Display the orders and items -->
 <div class="my-orders">
-    <h2>My Orders</h2>
+<h2 style="text-align: center; padding: 20px;">My Orders</h2>
     <table class="table">
         <thead>
             <tr>
@@ -51,11 +52,12 @@ $result = $stmt->get_result();
             <td><?php echo htmlspecialchars($order['order_id']); ?></td>
             <td><?php echo htmlspecialchars($order['product_name']); ?></td>
             <td><?php echo htmlspecialchars($order['product_description']); ?></td>
-            <td><?php echo htmlspecialchars($order['item_price']); ?></td>
+            <td><?php echo number_format($order['item_price'], 2); ?></td>
             <td><?php echo htmlspecialchars($order['quantity']); ?></td>
-            <td><?php echo htmlspecialchars($order['total_price']); ?></td>
+            <td><?php echo number_format($order['quantity'] * $order['item_price'], 2); ?></td>
+            <!-- <td><?php //echo htmlspecialchars($order['total_price']); ?></td> -->
             <td><img src="<?php echo htmlspecialchars($order['image_url']); ?>" alt="Product Image" width="100"></td>
-            <td><?php echo htmlspecialchars($order['order_date']); ?></td>
+            <td><?php echo date('d-m-Y', strtotime($order['order_date'])); ?></td>
             <td><?php echo htmlspecialchars($order['status']); ?></td>
             <td>
                 <form method="post" action=" ">
