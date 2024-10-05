@@ -76,7 +76,11 @@ if (!$category_result) {
                                     </form>
                                     <form method="post" action=" " style="display:inline;">
                                         <input type="hidden" value="<?php echo $row['category_id']; ?>" name="category_id" />
-                                        <input type="submit" value="Delete" name="delete" onclick="return confirm('Are you sure you want to delete this category?');" />
+                                        <input type="submit" class="btn-danger" value="Delete" name="delete"
+                                        onclick="return confirm('Are you sure you want to delete this category?');"
+                                        style="background-color: red; color: white; border: none; cursor: pointer;" 
+                                        onmouseover="this.style.backgroundColor='darkred';" 
+                                        onmouseout="this.style.backgroundColor='red';" />
                                     </form>
                                 </div>
                             </td>
@@ -91,3 +95,5 @@ if (!$category_result) {
         </table>
     </div>
 </div>
+
+

@@ -101,3 +101,18 @@ input[type="submit"] {
 input[type="submit"]:hover {
     background-color: #218838;
 }
+
+/* For Categrot Delete Button */
+/* .btn-danger {
+    background-color: red;
+    color: white;      
+    border: none;         
+    padding: 10px 15px;   
+    cursor: pointer;      
+    border-radius: 5px;   
+}
+
+.btn-danger:hover {
+    background-color: darkred;
+} */
+/* End */
