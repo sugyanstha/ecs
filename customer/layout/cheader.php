@@ -48,7 +48,7 @@
                         <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/view_profile.php">My Profile</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="../logout.php">Logout</a>
+                        <a class="nav-link active" aria-current="page" href="http://localhost/ecs//logout.php">Logout</a>
                     </li>
                 </ul>
                 <form class="d-flex" role="search">
