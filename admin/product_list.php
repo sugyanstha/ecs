@@ -14,6 +14,19 @@ ini_set('display_errors', 1);
 // Database connection
 include("../database/connection.php");
 
+// Delete Category
+if (isset($_POST['delete'])) {
+    $product_id = $_POST['product_id'];
+    $sql = "DELETE FROM products WHERE product_id='$product_id'";
+    $result = $conn->query($sql);
+    if ($result) {
+        header("Location: product_list.php");
+        exit; // Redirect after deletion
+    } else {
+        die("Error: " . $conn->error);
+    }
+}
+
 // Query to join Products and Categories and get the product list
 $product_query = "SELECT p.product_id, p.name AS product_name, p.description, p.price, p.stock, 
                 p.image_url, p.created_at, p.updated_at, c.name AS category_name
@@ -67,13 +80,17 @@ if (!$product_result) {
                                 <td><?php echo htmlspecialchars($row['updated_at']); ?></td>
                                 <td>
                                     <div class="button-row">
-                                        <form method="post" action="#">
+                                        <form method="post" action="edit_product.php">
                                             <input type="hidden" value="<?php echo $row['product_id']; ?>" name="product_id" />
                                             <input type="submit" value="Edit" name="edit" />
                                         </form>
-                                        <form method="post" action="#">
+                                        <form method="post" action=" ">
                                             <input type="hidden" value="<?php echo $row['product_id']; ?>" name="product_id" />
-                                            <input type="submit" value="Delete" name="delete" />
+                                            <input type="submit" value="Delete" name="delete" 
+                                            onclick="return confirm('Are you sure you want to delete this category?');"
+                                            style="background-color: red; color: white; border: none; cursor: pointer;" 
+                                            onmouseover="this.style.backgroundColor='darkred';" 
+                                            onmouseout="this.style.backgroundColor='red';" />
                                         </form>
                                     </div>
                                 </td>

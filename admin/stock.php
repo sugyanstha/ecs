@@ -1,14 +1,14 @@
 <?php
 session_start();
-include('database/connection.php');
+include('../database/connection.php');
 
 // Check if user is logged in
-if (!isset($_SESSION['email'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['adminemail'])) {
+    header('Location: admin_login.php');
     exit();
 }
 
-$email = $_SESSION['email'];
+$adminname = $_SESSION['adminemail'];
 
 // Handle the form submission (check stock)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -42,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <div class="container">
         <h2 class="mt-5">Check Stock</h2>
-        <p>Welcome, <?= htmlspecialchars($_SESSION['email']); ?></p>
-        <a href="logout.php" class="btn btn-danger">Logout</a>
+        <!-- <p>Welcome, <? //= //htmlspecialchars($_SESSION['email']); ?></p>
+        <a href="logout.php" class="btn btn-danger">Logout</a> -->
 
         <form method="POST" action="stock.php" class="mt-4">
             <div class="mb-3">
@@ -70,6 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <h4>Stock Information:</h4>
                 <p>Product: <?= $product_name ?></p>
                 <p>Available Stock: <?= $stock ?></p>
+
+                <!-- <input type="submit" value="Update Product" name="edit"/> -->
+                <button type="button" class="btn btn-primary" onclick="window.location.href='product_list.php' ">
+                    Back</button>
             </div>
         <?php elseif (isset($error)): ?>
             <div class="alert alert-danger mt-4"><?= $error ?></div>

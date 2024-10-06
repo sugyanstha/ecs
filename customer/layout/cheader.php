@@ -45,7 +45,7 @@
                         <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/cart.php">Shopping Cart</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/profile.php">My Profile</a>
+                        <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/view_profile.php">My Profile</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="../logout.php">Logout</a>

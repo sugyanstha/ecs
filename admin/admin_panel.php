@@ -61,18 +61,64 @@ include('../admin/layout/adminheader.php');
                 <td><?php echo htmlspecialchars($order['quantity']); ?></td>
                 <td><?php echo htmlspecialchars($order['total_price']); ?></td>
                 <td><?php echo htmlspecialchars($order['status']); ?></td>
-                <td>
+                <td> 
                     <form action="update_order_status.php" method="POST">
                         <input type="hidden" name="order_id" value="<?php echo htmlspecialchars($order['order_id']); ?>">
-                        <select name="status" onchange="this.form.submit()" class="form-select">
-                            <option value="pending" <?php if ($order['status'] == 'pending') echo 'selected'; ?>>Pending</option>
+                        <select name="status" onchange="this.form.submit()" class="form-select" <?php if ($order['status'] == 'canceled') echo 'disabled'; ?>>
+                            <option value="" disable selected>Order Status</option>
                             <option value="shipped" <?php if ($order['status'] == 'shipped') echo 'selected'; ?>>Shipped</option>
                             <option value="completed" <?php if ($order['status'] == 'completed') echo 'selected'; ?>>Completed</option>
                         </select>
                     </form>
+
+                    <?php if ($order['status'] != 'canceled'): ?>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancelOrderModal" data-order-id="<?php echo htmlspecialchars($order['order_id']); ?>">
+                            Cancel Order
+                        </button>
+                    <?php else: ?>
+                        <button type="button" class="btn btn-secondary" disabled>Canceled</button>
+                    <?php endif; ?>
+                    
                 </td>
             </tr>
         <?php } ?>
         </tbody>
     </table>
 </div>
+
+
+<!-- Cancel Order Modal -->
+<!-- <div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelOrderModalLabel">Enter Order ID</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="cancel_order.php" method="post">
+                    <div class="form-group">
+                        <label for="order_id">Order ID:</label>
+                        <input type="number" class="form-control" id="order_id" name="order_id" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Cancel Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $('#cancelOrderModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var orderId = button.data('order-id'); // Extract info from data-* attributes
+        var modal = $(this);
+        modal.find('#order_id').val(orderId); // Set the order ID in the modal input
+    });
+</script> -->
