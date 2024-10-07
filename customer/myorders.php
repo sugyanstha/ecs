@@ -60,10 +60,21 @@ $result = $stmt->get_result();
             <td><?php echo date('d-m-Y', strtotime($order['order_date'])); ?></td>
             <td><?php echo htmlspecialchars($order['status']); ?></td>
             <td>
-                <form method="post" action="cancel_order.php">
-                    <input type="hidden" value="<?php echo $row['order_id']; ?>" name="orderid" />
-                    <input type="submit" value="Cancle Order" name="cancle_order" />
-                </form>
+             <!-- Cancel Order Form -->
+             <form method="post" action="cancel_order.php">
+                <input type="hidden" value="<?php echo htmlspecialchars($order['order_id']); ?>" name="orderid" />
+                <!-- Disable cancel button if order is delivered/completed or already canceled -->
+                <input type="submit" value="Cancel Order" name="cancel_order" 
+                    <?php if ($order['status'] == 'shipped' || $order['status'] == 'delivered' || $order['status'] == 'canceled') echo 'disabled'; ?> />
+            </form>
+            <br>
+            <!-- Give Review Form -->
+            <form method="post" action="review.php">
+                <input type="hidden" value="<?php echo htmlspecialchars($order['order_id']); ?>" name="orderid" />
+                <!-- Disable Give Review button if order is not completed -->
+                <input type="submit" value="Give Review" name="give_review" 
+                    <?php if ($order['status'] != 'completed' && $order['status'] != 'delivered') echo 'disabled'; ?> />
+            </form>
             </td>
         </tr>
             </div>  

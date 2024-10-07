@@ -67,7 +67,7 @@ include('../admin/layout/adminheader.php');
                         <select name="status" onchange="this.form.submit()" class="form-select" <?php if ($order['status'] == 'canceled') echo 'disabled'; ?>>
                             <option value="" disable selected>Order Status</option>
                             <option value="shipped" <?php if ($order['status'] == 'shipped') echo 'selected'; ?>>Shipped</option>
-                            <option value="completed" <?php if ($order['status'] == 'completed') echo 'selected'; ?>>Completed</option>
+                            <option value="delivered" <?php if ($order['status'] == 'delivered') echo 'selected'; ?>>Delivered</option>
                         </select>
                     </form>
 

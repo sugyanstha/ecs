@@ -73,17 +73,27 @@ $result = $conn->query($sql);
                                 <span class="text-danger">Out of Stock</span>
                             <?php endif; ?>
                         </p>
+
+
                         <?php if ($row['stock'] > 0): ?>
                             <!-- Add to Cart Form -->
-                            <form method="post" action="cart.php" class="mb-3">
-                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+                            <!-- <form method="post" action="cart.php" class="mb-3">
+                                <input type="hidden" name="product_id" value="<?php //echo $row['product_id']; ?>">
                                 <div class="mb-3">
                                     <label for="quantity" class="form-label">Quantity:</label>
                                     <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="<?php echo $row['stock']; ?>" required>
                                 </div>
                                 <button type="submit" name="addtocart" class="btn btn-primary w-100">Add to Cart</button>
-                            </form>
+                            </form> -->
 
+                            <!-- View Product Details -->
+
+                            <!-- <form method="post" action="product_details.php" class="mb-3">
+                                <input type="hidden" name="product_id" value="<?php //echo $row['product_id']; ?>">
+                                <button type="submit" name="View Details" class="btn btn-info w-100">View Details</button>
+                            </form> -->
+                            <a href="product_details.php?id=<?php echo $row['product_id']; ?>" class="btn btn-info w-100">View Details</a>
+                            <br>
                             <!-- Buy Now Form (Direct Order) -->
                             <form method="post" action="place_order.php">
                                 <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">

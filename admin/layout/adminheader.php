@@ -86,6 +86,7 @@ h1{
                 <li><a href="category_list.php">CATEGORIES</a></li>
                 <li><a href="admin_panel.php">ORDERS</a></li>
                 <li><a href="stock.php">CHECK STOCK</a></li>
+                <li><a href="view_review.php">REVIEW</a></li>
                 <li><a href="customer_list.php">CUSTOMERS</a></li>
                 <li><a href="admin_logout.php">LOGOUT</a></li>
             </ul>
