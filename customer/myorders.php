@@ -27,10 +27,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 ?>
 
-
-<!-- Display the orders and items -->
 <div class="my-orders">
-<h2 style="text-align: center; padding: 20px;">My Orders</h2>
+    <h2 style="text-align: center; padding: 20px;">My Orders</h2>
     <table class="table">
         <thead>
             <tr>
@@ -47,41 +45,107 @@ $result = $stmt->get_result();
             </tr>
         </thead>
         <tbody>
-    <?php while ($order = $result->fetch_assoc()) { ?>
-        <tr>
-            <td><?php echo htmlspecialchars($order['order_id']); ?></td>
-            <td><?php echo htmlspecialchars($order['product_name']); ?></td>
-            <td><?php echo htmlspecialchars($order['product_description']); ?></td>
-            <td><?php echo number_format($order['item_price'], 2); ?></td>
-            <td><?php echo htmlspecialchars($order['quantity']); ?></td>
-            <td><?php echo number_format($order['quantity'] * $order['item_price'], 2); ?></td>
-            <!-- <td><?php //echo htmlspecialchars($order['total_price']); ?></td> -->
-            <td><img src="<?php echo htmlspecialchars($order['image_url']); ?>" alt="Product Image" width="100"></td>
-            <td><?php echo date('d-m-Y', strtotime($order['order_date'])); ?></td>
-            <td><?php echo htmlspecialchars($order['status']); ?></td>
-            <td>
-             <!-- Cancel Order Form -->
-             <form method="post" action="cancel_order.php">
-                <input type="hidden" value="<?php echo htmlspecialchars($order['order_id']); ?>" name="orderid" />
-                <!-- Disable cancel button if order is delivered/completed or already canceled -->
-                <input type="submit" value="Cancel Order" name="cancel_order" 
-                    <?php if ($order['status'] == 'shipped' || $order['status'] == 'delivered' || $order['status'] == 'canceled') echo 'disabled'; ?> />
-            </form>
-            <br>
-            <!-- Give Review Form -->
-            <form method="post" action="review.php">
-                <input type="hidden" value="<?php echo htmlspecialchars($order['order_id']); ?>" name="orderid" />
-                <!-- Disable Give Review button if order is not completed -->
-                <input type="submit" value="Give Review" name="give_review" 
-                    <?php if ($order['status'] != 'completed' && $order['status'] != 'delivered') echo 'disabled'; ?> />
-            </form>
-            </td>
-        </tr>
-            </div>  
-        </div>
-        <hr>
-    <?php } ?> 
+            <?php while ($order = $result->fetch_assoc()) { ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($order['order_id']); ?></td>
+                    <td><?php echo htmlspecialchars($order['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($order['product_description']); ?></td>
+                    <td><?php echo number_format($order['item_price'], 2); ?></td>
+                    <td><?php echo htmlspecialchars($order['quantity']); ?></td>
+                    <td><?php echo number_format($order['quantity'] * $order['item_price'], 2); ?></td>
+                    <td><img src="<?php echo htmlspecialchars($order['image_url']); ?>" alt="Product Image" width="100"></td>
+                    <td><?php echo date('d-m-Y', strtotime($order['order_date'])); ?></td>
+                    <td><?php echo htmlspecialchars($order['status']); ?></td>
+                    <td>
+                        <!-- Cancel Order Button -->
+                        <button type="button" class="btn btn-danger cancelOrderBtn" data-orderid="<?php echo htmlspecialchars($order['order_id']); ?>" 
+                            <?php if ($order['status'] == 'canceled') echo 'disabled'; ?>>
+                            Cancel Order
+                        </button>
+                        <br>
+                        <br>
+                        <!-- Give Review Form -->
+                        <form method="post" action="review.php">
+                            <input type="hidden" value="<?php echo htmlspecialchars($order['order_id']); ?>" name="orderid" />
+                            <input type="submit" value="Give Review" name="give_review" 
+                            style="background-color: #07b934; color: white; border-radius: 5px;
+                            border: none; padding: 10px 15px; cursor: pointer;"
+                            onmouseover="this.style.backgroundColor='#04a004';"
+                            onmouseout="this.style.backgroundColor='#07b934';"
+                                <?php if ($order['status'] != 'completed' && $order['status'] != 'delivered') echo 'disabled'; ?> />
+                        </form>
+                    </td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelOrderModalLabel">Enter Order ID</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="cancelOrderForm">
+                    <div class="form-group">
+                        <label for="order_id">Order ID:</label>
+                        <input type="number" class="form-control" id="order_id" name="order_id" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Cancel Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <a href="../dashboard.php">Back to Dashboard</a>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function() {
+    $('.cancelOrderBtn').click(function() {
+        const orderId = $(this).data('orderid');
+        $('#order_id').val(orderId); // Set the order ID in the modal input
+        $('#cancelOrderModal').modal('show'); // Show the modal
+    });
+
+    $('#cancelOrderForm').on('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        $.ajax({
+            url: 'cancel_order.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                // Execute the SweetAlert script returned from PHP
+                eval(response);
+
+                // Disable buttons for the canceled order
+                const orderId = $('#order_id').val();
+                $('tr[data-orderid="' + orderId + '"] .cancelOrderBtn').prop('disabled', true);
+                $('tr[data-orderid="' + orderId + '"] .reviewForm input[type="submit"]').prop('disabled', true);
+
+                $('#cancelOrderModal').modal('hide'); // Optionally hide the modal
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Something went wrong while canceling your order.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    });
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
