@@ -1,3 +1,7 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
 <?php
 // Start session if not already started
 if (session_status() == PHP_SESSION_NONE) {
@@ -16,36 +20,52 @@ if (!isset($_SESSION['email'])) {
 $email = $_SESSION['email'];
 
 // Add to cart functionality
-if (isset($_POST['addtocart'])) {
-    $product_id = intval($_POST['product_id']);
-    $quantity = intval($_POST['quantity']);
+// if (isset($_POST['addtocart'])) {
+//     $product_id = intval($_POST['product_id']);
+//     $quantity = intval($_POST['quantity']);
 
-    // Fetch product details to verify stock
-    $stmt = $conn->prepare("SELECT name, description, price, stock FROM products WHERE product_id = ?");
-    $stmt->bind_param("i", $product_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $product = $result->fetch_assoc();
+     // Fetch product details to verify stock
+//     $stmt = $conn->prepare("SELECT name, description, price, stock FROM products WHERE product_id = ?");
+//     $stmt->bind_param("i", $product_id);
+//     $stmt->execute();
+//     $result = $stmt->get_result();
+//     $product = $result->fetch_assoc();
 
-    if ($product['stock'] >= $quantity) {
-        // Sanitize inputs
-        $name = $conn->real_escape_string($product['name']);
-        $description = $conn->real_escape_string($product['description']);
-        $price = $conn->real_escape_string($product['price']);
+//     if ($product['stock'] >= $quantity) {
+         // Sanitize inputs
+//         $name = $conn->real_escape_string($product['name']);
+//         $description = $conn->real_escape_string($product['description']);
+//         $price = $conn->real_escape_string($product['price']);
 
-        // Insert into cart
-        $sql = "INSERT INTO cart (product_id, name, description, price, quantity) VALUES ('$product_id', '$name', '$description', '$price', '$quantity')";
-        if ($conn->query($sql) === TRUE) {
-            echo "<script>alert('Product added to cart successfully');</script>";
-            header("Location: cart.php");
-            exit();
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-    } else {
-        echo "<script>alert('Insufficient stock!');</script>";
-    }
+         // Insert into cart
+//         $sql = "INSERT INTO cart (product_id, name, description, price, quantity) VALUES ('$product_id', '$name', '$description', '$price', '$quantity')";
+//         if ($conn->query($sql) === TRUE) {
+//             echo "<script>alert('Product added to cart successfully');</script>";
+//             header("Location: cart.php");
+//             exit();
+//         } else {
+//             echo "Error: " . $sql . "<br>" . $conn->error;
+//         }
+//     } else {
+//         echo "<script>alert('Insufficient stock!');</script>";
+//     }
+// }
+
+
+//Displaying sucess and error message using sweet alert
+if (isset($_SESSION['message'])) {
+    $message = $_SESSION['message'];
+    echo "<script>
+            Swal.fire({
+                title: \"" . ($message['type'] == 'success' ? 'Order placed!' : 'Error while placing your order!') . "\",
+                text: \"" . htmlspecialchars($message['text']) . "\",
+                icon: '{$message['type']}'
+            });
+          </script>";
+    // Clear the message after displaying it
+    unset($_SESSION['message']);
 }
+
 
 // Fetch all products
 $sql = "SELECT product_id, name, description, price, stock, image_url FROM products";

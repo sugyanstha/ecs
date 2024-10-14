@@ -40,6 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
+        // Validate category ID
+        $category_query = "SELECT * FROM categories WHERE category_id = ?";
+        $category_stmt = $conn->prepare($category_query);
+        $category_stmt->bind_param("i", $category_id);
+        $category_stmt->execute();
+        $category_result = $category_stmt->get_result();
+        if ($category_result->num_rows === 0) {
+            die("Invalid category selected.");
+        }
+
     // Update the product in the database
     $query = "UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category_id = ? $image_query WHERE product_id = ?";
     $stmt = $conn->prepare($query);

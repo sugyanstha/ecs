@@ -23,7 +23,7 @@ $order_query = "SELECT o.order_id, o.cid AS customer_id, o.total_price, o.status
 $orders = mysqli_query($conn, $order_query);
 
 if (!$orders) {
-    // Handle query error
+    // Handle query error 
     die("Query Failed: " . mysqli_error($conn));
 }
 
@@ -64,19 +64,22 @@ include('../admin/layout/adminheader.php');
                 <td> 
                     <form action="update_order_status.php" method="POST">
                         <input type="hidden" name="order_id" value="<?php echo htmlspecialchars($order['order_id']); ?>">
-                        <select name="status" onchange="this.form.submit()" class="form-select" <?php if ($order['status'] == 'canceled') echo 'disabled'; ?>>
+                        <select name="status" onchange="this.form.submit()" class="form-select" <?php if ($order['status'] == 'canceled' || $order['status'] == 'delivered') echo 'disabled'; ?>>
                             <option value="" disable selected>Order Status</option>
                             <option value="shipped" <?php if ($order['status'] == 'shipped') echo 'selected'; ?>>Shipped</option>
                             <option value="delivered" <?php if ($order['status'] == 'delivered') echo 'selected'; ?>>Delivered</option>
                         </select>
                     </form>
 
-                    <?php if ($order['status'] != 'canceled'): ?>
+                    <?php //if ($order['status'] != 'canceled' && $order['status'] != 'delivered'): ?>
+                        <?php if ($order['status'] == 'pending'): ?>
                         <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancelOrderModal" data-order-id="<?php echo htmlspecialchars($order['order_id']); ?>">
                             Cancel Order
                         </button>
                     <?php else: ?>
-                        <button type="button" class="btn btn-secondary" disabled>Canceled</button>
+                        <button type="button" class="btn btn-secondary" disabled>
+                        <?php echo ($order['status'] == 'canceled') ? 'Canceled' : 'Cannot be Cancel'; ?>
+                        </button>
                     <?php endif; ?>
                     
                 </td>

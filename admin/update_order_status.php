@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $status = $_POST['status'];
         
         // Check if the status is valid (optional validation)
-        $valid_statuses = ['shipped', 'delivered'];
+        $valid_statuses = ['shipped', 'delivered']; 
         if (in_array($status, $valid_statuses)) {
             // Update the order status in the database
             $update_query = "UPDATE orders SET status = ? WHERE order_id = ?";

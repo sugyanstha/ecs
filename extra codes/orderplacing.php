@@ -10,6 +10,7 @@ if (!isset($_SESSION['cid'])) {
 
 $customer_id = $_SESSION['cid'];
 
+// Fetch product ID and quantity from the form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['product_id'], $_POST['quantity'])) {
         $product_id = intval($_POST['product_id']);
@@ -54,30 +55,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Commit the transaction
                 $conn->commit();
 
-                // Set success message in session
-                $_SESSION['message'] = [
-                    'type' => 'success',
-                    'text' => 'Your order has been placed successfully.'
-                ];
+                // Order placed successfully, redirect to my orders page
+                header("Location: myorders.php");
+                exit();
+
             } else {
                 // Rollback transaction if stock is insufficient
                 $conn->rollback();
-                $_SESSION['message'] = [
-                    'type' => 'error',
-                    'text' => 'Insufficient stock or product not available.'
-                ];
+                echo "<script>alert('Insufficient stock or product not available.');</script>";
+                header("Location: view_product.php");
+                exit();
             }
         } catch (Exception $e) {
             // Rollback transaction on error
             $conn->rollback();
-            $_SESSION['message'] = [
-                'type' => 'error',
-                'text' => 'An error occurred while placing the order. Please try again.'
-            ];
+            echo "<script>alert('An error occurred while placing the order. Please try again.');</script>";
+            header("Location: view_product.php");
+            exit();
         }
-
-        // Redirect back to view_product.php
-        header("Location: view_product.php");
-        exit();
     }
 }
+?>
