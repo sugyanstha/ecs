@@ -37,27 +37,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Commit transaction
         $conn->commit();
-        $message = "Your order has been canceled successfully.";
+        $response['success'] = true;
+        $response['message'] = "Your order has been canceled successfully.";
         
         $itemsQuery->close();
         $cancelQuery->close();
     } catch (Exception $e) {
         $conn->rollback();
         $message = "Error canceling order: " . $e->getMessage();
-        $isError = true;
+        // $isError = true;
     }
 
     // Close connection
     $conn->close();
 
+        // Return JSON response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+
     // Output the SweetAlert script
-    echo "<script>
-            Swal.fire({
-                title: '" . ($isError ? "Error!" : "Success!") . "',
-                text: '$message',
-                icon: '" . ($isError ? "error" : "success") . "',
-                confirmButtonText: 'OK'
-            });
-          </script>";
+    // echo "<script>
+    //         Swal.fire({
+    //             title: '" . ($isError ? "Error!" : "Success!") . "',
+    //             text: '$message',
+    //             icon: '" . ($isError ? "error" : "success") . "',
+    //             confirmButtonText: 'OK'
+    //         });
+    //       </script>";
 }
 ?>

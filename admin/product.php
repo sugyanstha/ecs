@@ -1,9 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product</title>
+</head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+</head>
+<body>
+
 <?php
 session_start();
 include('../database/connection.php');
 
 if (!isset($_SESSION['adminemail'])) {
     header("Location: admin_login.php");
+    exit;
 }
 
 // Add Product
@@ -18,42 +31,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Handle file upload
         if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-            $target_dir = "../img/"; // Directory where images will be stored
+            $target_dir = "../img/";
             $target_file = $target_dir . basename($_FILES["image"]["name"]);
             $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-            // Validate file type (only allow certain image formats)
             $allowed_file_types = array('jpg', 'jpeg', 'png', 'gif');
             if (in_array($imageFileType, $allowed_file_types)) {
-                // Check if file already exists, if yes rename
                 if (file_exists($target_file)) {
-                    $target_file = $target_dir . time() . "_" . basename($_FILES["image"]["name"]); // Add timestamp to avoid duplicate filenames
+                    $target_file = $target_dir . time() . "_" . basename($_FILES["image"]["name"]);
                 }
 
-                // Move the uploaded file to the uploads directory
                 if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                    // Prepare the query with the image path
                     $query = "INSERT INTO products (name, description, price, stock, category_id, image_url) 
                               VALUES ('$name', '$description', '$price', '$stock', '$category_id', '$target_file')";
 
                     if (mysqli_query($conn, $query)) {
-                        header("Location: admin_panel.php");
+                        // Set success message
+                        $_SESSION['message'] = "Product added successfully!";
+                        $_SESSION['msg_type'] = "success"; // or any other type you want to define
+                        // header("Location: view_product.php");
+                        // exit;
                     } else {
-                        die("Error inserting product: " . mysqli_error($conn));
+                        // Set error message
+                        $_SESSION['message'] = "Error inserting product: " . mysqli_error($conn);
+                        $_SESSION['msg_type'] = "error";
                     }
                 } else {
-                    echo "Error uploading the image.";
+                    $_SESSION['message'] = "Error uploading the image.";
+                    $_SESSION['msg_type'] = "error";
                 }
             } else {
-                echo "Only JPG, JPEG, PNG & GIF files are allowed.";
+                $_SESSION['message'] = "Only JPG, JPEG, PNG & GIF files are allowed.";
+                $_SESSION['msg_type'] = "error";
             }
         } else {
-            echo "Image file is required.";
+            $_SESSION['message'] = "Image file is required.";
+            $_SESSION['msg_type'] = "error";
         }
     }
 }
 ?>
 
+    <?php if (isset($_SESSION['message'])): ?>
+        <script>
+            swal({
+                title: "<?php echo $_SESSION['msg_type'] == 'success' ? 'Success' : 'Error'; ?>",
+                text: "<?php echo $_SESSION['message']; ?>",
+                icon: "<?php echo $_SESSION['msg_type'] == 'success' ? 'success' : 'error'; ?>",
+                button: "OK",
+            }).then(() => {
+                // Redirect if success
+                <?php if ($_SESSION['msg_type'] == 'success'): ?>
+                    window.location.href = "product_list.php"; // Redirect to the product list page
+                <?php endif; ?>
+            });
+        </script>
+        <?php unset($_SESSION['message']); ?>
+        <?php unset($_SESSION['msg_type']); ?>
+    <?php endif; ?>
 
 
 <link rel="stylesheet" href="../css/form.css">
@@ -90,3 +125,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <button><a href="product_list.php">Back</a></button>
     </div>
 </form>
+</body>
+</html>

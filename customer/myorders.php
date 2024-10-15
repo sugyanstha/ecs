@@ -57,11 +57,18 @@ $result = $stmt->get_result();
                     <td><?php echo date('d-m-Y', strtotime($order['order_date'])); ?></td>
                     <td><?php echo htmlspecialchars($order['status']); ?></td>
                     <td>
-                        <!-- Cancel Order Button -->
-                        <button type="button" class="btn btn-danger cancelOrderBtn" data-orderid="<?php echo htmlspecialchars($order['order_id']); ?>" 
-                            <?php if ($order['status'] == 'canceled') echo 'disabled'; ?>>
-                            Cancel Order
-                        </button>
+                        <?php if ($order['status'] == 'pending'): ?>
+                            <!-- Cancel Order Button -->
+                            <button type="button" class="btn btn-danger cancelOrderBtn" data-orderid="<?php echo htmlspecialchars($order['order_id']); ?>">
+                                Cancel Order
+                            </button>
+                        <?php elseif ($order['status'] == 'delivered'): ?>
+                            <!-- Show "Delivered" text instead of Cancel Order -->
+                            <button class="btn btn-success" disabled>Delivered</button>
+                        <?php else: ?>
+                            <!-- Disable Cancel Order Button for shipped and canceled statuses -->
+                            <button type="button" class="btn btn-secondary" disabled>Cancel Order</button>
+                        <?php endif; ?>
                         <br>
                         <br>
                         <!-- Give Review Form -->
@@ -72,7 +79,7 @@ $result = $stmt->get_result();
                             border: none; padding: 10px 15px; cursor: pointer;"
                             onmouseover="this.style.backgroundColor='#04a004';"
                             onmouseout="this.style.backgroundColor='#07b934';"
-                                <?php if ($order['status'] != 'completed' && $order['status'] != 'delivered') echo 'disabled'; ?> />
+                            <?php if ($order['status'] != 'delivered' || $order['status'] == 'canceled') echo 'disabled'; ?> />
                         </form>
                     </td>
                 </tr>
@@ -80,6 +87,7 @@ $result = $stmt->get_result();
         </tbody>
     </table>
 </div>
+
 
 <!-- Modal -->
 <div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
@@ -117,34 +125,49 @@ $(document).ready(function() {
     });
 
     $('#cancelOrderForm').on('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
+    event.preventDefault(); // Prevent the default form submission
 
-        $.ajax({
-            url: 'cancel_order.php',
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                // Execute the SweetAlert script returned from PHP
-                eval(response);
-
-                // Disable buttons for the canceled order
-                const orderId = $('#order_id').val();
-                $('tr[data-orderid="' + orderId + '"] .cancelOrderBtn').prop('disabled', true);
-                $('tr[data-orderid="' + orderId + '"] .reviewForm input[type="submit"]').prop('disabled', true);
-
-                $('#cancelOrderModal').modal('hide'); // Optionally hide the modal
-            },
-            error: function() {
+    $.ajax({
+        url: 'cancel_order.php',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: response.message,
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    location.reload(); // Reload to see the updated order status
+                });
+            } else {
                 Swal.fire({
                     title: 'Error!',
-                    text: 'Something went wrong while canceling your order.',
+                    text: response.message,
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
             }
-        });
+
+            // Disable buttons for the canceled order
+            const orderId = $('#order_id').val();
+            $('tr[data-orderid="' + orderId + '"] .cancelOrderBtn').prop('disabled', true);
+            $('tr[data-orderid="' + orderId + '"] .reviewForm input[type="submit"]').prop('disabled', true);
+
+            $('#cancelOrderModal').modal('hide'); // Optionally hide the modal
+        },
+        error: function() {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Something went wrong while canceling your order.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
     });
 });
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
