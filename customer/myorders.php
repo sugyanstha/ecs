@@ -87,7 +87,6 @@ $result = $stmt->get_result();
 </div>
 
 <!-- Modal -->
-<!-- Modal -->
 <div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true" aria-modal="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -139,7 +138,7 @@ $(document).ready(function() {
                         icon: 'success',
                         confirmButtonText: 'OK'
                     }).then(() => {
-                        location.reload(); // Reload to see the updated order status
+                        location.reload(); 
                     });
                 } else {
                     Swal.fire({

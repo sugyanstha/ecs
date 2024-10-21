@@ -1,32 +1,36 @@
 <?php
 session_start();
 include('../database/connection.php');
-
-// Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $order_id = intval($_POST['order_id']);
-    $response = []; // Initialize response array
-
-    // Start transaction
+    $response = [];
     $conn->begin_transaction();
 
     try {
-        // First, delete the order items
+        $itemsQuery = $conn->prepare("SELECT product_id, quantity FROM OrderItems WHERE order_id = ?");
+        $itemsQuery->bind_param("i", $order_id);
+        $itemsQuery->execute();
+        $itemsResult = $itemsQuery->get_result();
+        while ($item = $itemsResult->fetch_assoc()) {
+            $product_id = $item['product_id'];
+            $quantity = $item['quantity'];
+            $restockQuery = $conn->prepare("UPDATE Products SET stock = stock + ? WHERE product_id = ?");
+            $restockQuery->bind_param("ii", $quantity, $product_id);
+            $restockQuery->execute();
+            $restockQuery->close();
+        }
+        $itemsQuery->close();
         $deleteItemsQuery = $conn->prepare("DELETE FROM OrderItems WHERE order_id = ?");
         $deleteItemsQuery->bind_param("i", $order_id);
         $deleteItemsQuery->execute();
-        
-        // Then, delete the order itself
         $deleteOrderQuery = $conn->prepare("DELETE FROM Orders WHERE order_id = ?");
         $deleteOrderQuery->bind_param("i", $order_id);
         $deleteOrderQuery->execute();
 
-        // Commit transaction
         $conn->commit();
         $response['success'] = true;
         $response['message'] = "Your order has been deleted successfully.";
         
-        // Close the prepared statements
         $deleteItemsQuery->close();
         $deleteOrderQuery->close();
     } catch (Exception $e) {
@@ -35,10 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $response['message'] = "Error deleting order: " . $e->getMessage();
     }
 
-    // Close connection
     $conn->close();
 
-    // Return JSON response
     header('Content-Type: application/json');
     echo json_encode($response);
 }

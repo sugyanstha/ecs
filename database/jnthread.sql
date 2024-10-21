@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 21, 2024 at 11:00 AM
--- Server version: 10.4.24-MariaDB
--- PHP Version: 8.1.6
+-- Generation Time: Oct 21, 2024 at 03:05 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -31,7 +31,7 @@ CREATE TABLE `admin` (
   `aid` int(11) NOT NULL,
   `email` varchar(120) NOT NULL,
   `password` varchar(120) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `admin`
@@ -50,7 +50,14 @@ CREATE TABLE `cart` (
   `cart_id` int(11) NOT NULL,
   `cid` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cart`
+--
+
+INSERT INTO `cart` (`cart_id`, `cid`, `created_at`) VALUES
+(1, 4, '2024-10-21 12:22:06');
 
 -- --------------------------------------------------------
 
@@ -63,7 +70,7 @@ CREATE TABLE `cartitems` (
   `cart_id` int(11) DEFAULT NULL,
   `product_id` int(11) DEFAULT NULL,
   `quantity` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -74,7 +81,7 @@ CREATE TABLE `cartitems` (
 CREATE TABLE `categories` (
   `category_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `categories`
@@ -101,7 +108,7 @@ CREATE TABLE `customer` (
   `password` varchar(255) NOT NULL,
   `reset_otp_hash` varchar(64) DEFAULT NULL,
   `rest_otp_expires_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `customer`
@@ -123,7 +130,7 @@ CREATE TABLE `orderitems` (
   `product_id` int(11) DEFAULT NULL,
   `quantity` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orderitems`
@@ -139,7 +146,12 @@ INSERT INTO `orderitems` (`order_item_id`, `order_id`, `product_id`, `quantity`,
 (23, 23, 17, 1, 345.00),
 (24, 24, 17, 1, 345.00),
 (25, 25, 7, 1, 234.00),
-(26, 26, 7, 1, 234.00);
+(26, 26, 7, 1, 234.00),
+(27, 27, 7, 1, 234.00),
+(28, 28, 17, 1, 345.00),
+(29, 29, 7, 1, 234.00),
+(30, 30, 7, 1, 234.00),
+(34, 34, 7, 4, 234.00);
 
 -- --------------------------------------------------------
 
@@ -154,7 +166,7 @@ CREATE TABLE `orders` (
   `status` enum('pending','shipped','delivered','canceled') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
@@ -170,7 +182,12 @@ INSERT INTO `orders` (`order_id`, `cid`, `total_price`, `status`, `created_at`, 
 (23, 4, 345.00, 'canceled', '2024-10-15 13:27:09', '2024-10-15 15:12:09'),
 (24, 4, 345.00, 'delivered', '2024-10-15 15:51:31', '2024-10-15 16:23:44'),
 (25, 4, 234.00, 'delivered', '2024-10-16 14:57:25', '2024-10-20 16:56:52'),
-(26, 4, 234.00, 'pending', '2024-10-20 16:34:07', '2024-10-20 16:34:07');
+(26, 4, 234.00, 'canceled', '2024-10-20 16:34:07', '2024-10-21 12:45:52'),
+(27, 4, 234.00, 'canceled', '2024-10-21 12:00:28', '2024-10-21 12:46:12'),
+(28, 4, 345.00, 'canceled', '2024-10-21 12:00:35', '2024-10-21 12:46:06'),
+(29, 4, 234.00, 'canceled', '2024-10-21 12:14:28', '2024-10-21 12:50:38'),
+(30, 4, 234.00, 'canceled', '2024-10-21 12:16:05', '2024-10-21 12:56:03'),
+(34, 4, 936.00, 'pending', '2024-10-21 12:48:00', '2024-10-21 12:48:00');
 
 -- --------------------------------------------------------
 
@@ -185,7 +202,7 @@ CREATE TABLE `payments` (
   `amount` decimal(10,2) NOT NULL,
   `payment_status` enum('pending','completed','failed') DEFAULT 'pending',
   `payment_date` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -203,15 +220,15 @@ CREATE TABLE `products` (
   `image_url` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `products`
 --
 
 INSERT INTO `products` (`product_id`, `name`, `description`, `price`, `stock`, `category_id`, `image_url`, `created_at`, `updated_at`) VALUES
-(7, 'sdgdf', 'dfhdfg', 234.00, 20, 5, '../img/ECS DFD Level-1.drawio.png', '2024-10-06 16:29:19', '2024-10-20 16:34:07'),
-(17, 'dghrftg', 'dhghgfdh', 345.00, 1, 6, '../img/1728998592_ECS_ERD.drawio.png', '2024-10-15 13:23:12', '2024-10-15 15:51:31');
+(7, 'sdgdf', 'dfhdfg', 234.00, 15, 5, '../img/ECS DFD Level-1.drawio.png', '2024-10-06 16:29:19', '2024-10-21 13:02:24'),
+(17, 'dghrftg', 'dhghgfdh', 345.00, 1, 6, '../img/1728998592_ECS_ERD.drawio.png', '2024-10-15 13:23:12', '2024-10-21 12:46:06');
 
 -- --------------------------------------------------------
 
@@ -220,19 +237,20 @@ INSERT INTO `products` (`product_id`, `name`, `description`, `price`, `stock`, `
 --
 
 CREATE TABLE `reviews` (
-  `review_id` int(11) NOT NULL AUTO_INCREMENT,
+  `review_id` int(11) NOT NULL,
   `product_id` int(11) DEFAULT NULL,
   `cid` int(11) DEFAULT NULL,
   `rating` int(11) DEFAULT NULL CHECK (`rating` between 1 and 5),
   `comment` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`review_id`),
-  KEY `product_id` (`product_id`),
-  KEY `cid` (`cid`),
-  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
-  CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`cid`) REFERENCES `customer` (`cid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `reviews`
+--
+
+INSERT INTO `reviews` (`review_id`, `product_id`, `cid`, `rating`, `comment`, `created_at`) VALUES
+(1, 7, 4, 1, 'this is review', '2024-10-21 11:49:18');
 
 --
 -- Indexes for dumped tables
@@ -319,7 +337,7 @@ ALTER TABLE `reviews`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `cartitems`
@@ -343,13 +361,13 @@ ALTER TABLE `customer`
 -- AUTO_INCREMENT for table `orderitems`
 --
 ALTER TABLE `orderitems`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -367,7 +385,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
