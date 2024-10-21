@@ -1,6 +1,5 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <?php
 // Start session if not already started
@@ -19,45 +18,42 @@ if (!isset($_SESSION['email'])) {
 
 $email = $_SESSION['email'];
 
-// Add to cart functionality
-// if (isset($_POST['addtocart'])) {
-//     $product_id = intval($_POST['product_id']);
-//     $quantity = intval($_POST['quantity']);
+if (isset($_POST['addtocart'])) {
+    $product_id = intval($_POST['product_id']);
+    $quantity = intval($_POST['quantity']);
 
-     // Fetch product details to verify stock
-//     $stmt = $conn->prepare("SELECT name, description, price, stock FROM products WHERE product_id = ?");
-//     $stmt->bind_param("i", $product_id);
-//     $stmt->execute();
-//     $result = $stmt->get_result();
-//     $product = $result->fetch_assoc();
+    $stmt = $conn->prepare("SELECT name, description, price, stock FROM products WHERE product_id = ?");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $product = $result->fetch_assoc();
 
-//     if ($product['stock'] >= $quantity) {
-         // Sanitize inputs
-//         $name = $conn->real_escape_string($product['name']);
-//         $description = $conn->real_escape_string($product['description']);
-//         $price = $conn->real_escape_string($product['price']);
+    if ($product && $product['stock'] >= $quantity) {
+        // Use prepared statement to prevent SQL injection
+        $sql = "INSERT INTO cart (product_id, name, description, price, quantity) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("isssi", $product_id, $product['name'], $product['description'], $product['price'], $quantity);
+        
+        if ($stmt->execute()) {
+            // Set session message for success
+            $_SESSION['message'] = ['type' => 'success', 'text' => 'Product added to cart successfully'];
+            header("Location: cart.php");
+            exit();
+        } else {
+            // Set session message for error
+            $_SESSION['message'] = ['type' => 'error', 'text' => 'Error adding product to cart!'];
+        }
+    } else {
+        $_SESSION['message'] = ['type' => 'error', 'text' => 'Insufficient stock!'];
+    }
+}
 
-         // Insert into cart
-//         $sql = "INSERT INTO cart (product_id, name, description, price, quantity) VALUES ('$product_id', '$name', '$description', '$price', '$quantity')";
-//         if ($conn->query($sql) === TRUE) {
-//             echo "<script>alert('Product added to cart successfully');</script>";
-//             header("Location: cart.php");
-//             exit();
-//         } else {
-//             echo "Error: " . $sql . "<br>" . $conn->error;
-//         }
-//     } else {
-//         echo "<script>alert('Insufficient stock!');</script>";
-//     }
-// }
-
-
-//Displaying sucess and error message using sweet alert
+// Display success or error message using SweetAlert
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
     echo "<script>
             Swal.fire({
-                title: \"" . ($message['type'] == 'success' ? 'Order placed!' : 'Error while placing your order!') . "\",
+                title: '" . ($message['type'] == 'success' ? 'Success!' : 'Error!') . "',
                 text: \"" . htmlspecialchars($message['text']) . "\",
                 icon: '{$message['type']}'
             });
@@ -65,7 +61,6 @@ if (isset($_SESSION['message'])) {
     // Clear the message after displaying it
     unset($_SESSION['message']);
 }
-
 
 // Fetch all products
 $sql = "SELECT product_id, name, description, price, stock, image_url FROM products";
@@ -94,32 +89,32 @@ $result = $conn->query($sql);
                             <?php endif; ?>
                         </p>
 
-
                         <?php if ($row['stock'] > 0): ?>
-                            <!-- Add to Cart Form -->
-                            <!-- <form method="post" action="cart.php" class="mb-3">
-                                <input type="hidden" name="product_id" value="<?php //echo $row['product_id']; ?>">
+                            <!-- Add to Cart Form 
+                            <form method="post" action="cart.php" class="mb-3">
+                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
                                 <div class="mb-3">
                                     <label for="quantity" class="form-label">Quantity:</label>
                                     <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="<?php echo $row['stock']; ?>" required>
                                 </div>
                                 <button type="submit" name="addtocart" class="btn btn-primary w-100">Add to Cart</button>
-                            </form> -->
-
+                            </form>-->
+                            
                             <!-- View Product Details -->
-
-                            <!-- <form method="post" action="product_details.php" class="mb-3">
-                                <input type="hidden" name="product_id" value="<?php //echo $row['product_id']; ?>">
-                                <button type="submit" name="View Details" class="btn btn-info w-100">View Details</button>
-                            </form> -->
                             <a href="product_details.php?id=<?php echo $row['product_id']; ?>" class="btn btn-info w-100">View Details</a>
                             <br>
+                            
                             <!-- Buy Now Form (Direct Order) -->
-                            <form method="post" action="place_order.php">
-                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
-                                <input type="hidden" name="quantity" value="1" min="1" max="<?php echo $row['stock']; ?>" required> <!-- Default quantity -->
-                                <button type="submit" class="btn btn-warning w-100">Buy Now</button>
-                            </form>
+                            <!-- Buy Now Form (Direct Order) -->
+<form method="post" action="place_order.php" class="mb-3">
+    <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+    <div class="mb-3">
+        <label for="buy_quantity_<?php echo $row['product_id']; ?>" class="form-label">Quantity:</label>
+        <input type="number" name="quantity" id="buy_quantity_<?php echo $row['product_id']; ?>" class="form-control" value="1" min="1" max="<?php echo $row['stock']; ?>" required>
+    </div>
+    <button type="submit" class="btn btn-warning w-100">Buy Now</button>
+</form>
+
                         <?php else: ?>
                             <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
                         <?php endif; ?>
@@ -135,7 +130,6 @@ $result = $conn->query($sql);
     </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<?php //include('customer/layout/cfooter.php'); ?>
+<?php // include('customer/layout/cfooter.php'); ?>

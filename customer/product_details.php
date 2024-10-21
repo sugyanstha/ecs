@@ -24,12 +24,14 @@ if (!$product) {
     exit();
 }
 
-// Fetch reviews
-$review_stmt = $conn->prepare("SELECT cid, comment, rating FROM reviews WHERE product_id = ?");
+// Fetch reviews with customer names
+$review_stmt = $conn->prepare("SELECT r.cid, r.comment, r.rating, c.name AS username 
+                                FROM reviews r 
+                                JOIN customer c ON r.cid = c.cid 
+                                WHERE r.product_id = ?");
 $review_stmt->bind_param("i", $product_id);
 $review_stmt->execute();
 $review_result = $review_stmt->get_result();
-
 ?>
 
 <div class="container mt-5">
@@ -58,17 +60,19 @@ $review_result = $review_stmt->get_result();
     </div>
 
     <h2 class="mt-4">Customer Reviews</h2>
-    <?php if ($review_result->num_rows > 0) {
-        while ($review = $review_result->fetch_assoc()) { ?>
-            <div class="review mb-3">
-                <strong><?php echo htmlspecialchars($review['username']); ?></strong>
-                <p><?php echo htmlspecialchars($review['comment']); ?></p>
-                <small>Rating: <?php echo htmlspecialchars($review['rating']); ?> / 5</small>
-            </div>
-        <?php }
-    } else { ?>
-        <p>No reviews yet for this product.</p>
-    <?php } ?>
+<?php if ($review_result->num_rows > 0) {
+    while ($review = $review_result->fetch_assoc()) {
+        ?>
+        <div class="review mb-3">
+            <strong><?php echo htmlspecialchars($review['username']); ?></strong>
+            <p><?php echo htmlspecialchars($review['comment']); ?></p>
+            <small>Rating: <?php echo htmlspecialchars($review['rating']); ?> / 5</small>
+        </div>
+    <?php }
+} else { ?>
+    <p>No reviews yet for this product.</p>
+<?php } ?>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>

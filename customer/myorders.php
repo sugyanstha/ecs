@@ -2,6 +2,7 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 session_start();
+
 if (!isset($_SESSION['cid'])) {
     header('Location: login.php');
     exit();
@@ -10,16 +11,17 @@ if (!isset($_SESSION['cid'])) {
 include('../database/connection.php'); // Database connection
 include('../customer/layout/cheader.php');
 
-// Assuming customer is logged in and we have their customer ID in the session
+// Get customer ID from the session
 $customer_id = $_SESSION['cid'];
 
 // SQL query to fetch the order details for the logged-in customer
-$order_query = "SELECT o.order_id, o.created_at AS order_date, o.total_price, o.status, oi.order_item_id, 
-                oi.quantity, oi.price AS item_price, p.product_id, p.name AS product_name, 
-                p.description AS product_description, p.image_url
-                FROM `orders` o JOIN orderItems oi ON o.order_id = oi.order_id
+$order_query = "SELECT o.order_id, o.created_at AS order_date, o.total_price, o.status, 
+                oi.order_item_id, oi.quantity, oi.price AS item_price, p.product_id, 
+                p.name AS product_name, p.description AS product_description, p.image_url
+                FROM orders o 
+                JOIN orderItems oi ON o.order_id = oi.order_id
                 JOIN products p ON oi.product_id = p.product_id
-                WHERE o.cid = ? ORDER BY o.order_id DESC; ";
+                WHERE o.cid = ? ORDER BY o.order_id DESC;";
 
 $stmt = $conn->prepare($order_query);
 $stmt->bind_param('i', $customer_id); // Bind customer ID to the query
@@ -46,7 +48,7 @@ $result = $stmt->get_result();
         </thead>
         <tbody>
             <?php while ($order = $result->fetch_assoc()) { ?>
-                <tr>
+                <tr data-orderid="<?php echo htmlspecialchars($order['order_id']); ?>">
                     <td><?php echo htmlspecialchars($order['order_id']); ?></td>
                     <td><?php echo htmlspecialchars($order['product_name']); ?></td>
                     <td><?php echo htmlspecialchars($order['product_description']); ?></td>
@@ -58,28 +60,24 @@ $result = $stmt->get_result();
                     <td><?php echo htmlspecialchars($order['status']); ?></td>
                     <td>
                         <?php if ($order['status'] == 'pending'): ?>
-                            <!-- Cancel Order Button -->
                             <button type="button" class="btn btn-danger cancelOrderBtn" data-orderid="<?php echo htmlspecialchars($order['order_id']); ?>">
                                 Cancel Order
                             </button>
                         <?php elseif ($order['status'] == 'delivered'): ?>
-                            <!-- Show "Delivered" text instead of Cancel Order -->
                             <button class="btn btn-success" disabled>Delivered</button>
                         <?php else: ?>
-                            <!-- Disable Cancel Order Button for shipped and canceled statuses -->
                             <button type="button" class="btn btn-secondary" disabled>Cancel Order</button>
                         <?php endif; ?>
-                        <br>
-                        <br>
+                        <br><br>
                         <!-- Give Review Form -->
-                        <form method="post" action="review.php">
+                        <form method="post" action="review.php?product_id=<?php echo htmlspecialchars($order['product_id']); ?>">
                             <input type="hidden" value="<?php echo htmlspecialchars($order['order_id']); ?>" name="orderid" />
                             <input type="submit" value="Give Review" name="give_review" 
                             style="background-color: #07b934; color: white; border-radius: 5px;
                             border: none; padding: 10px 15px; cursor: pointer;"
                             onmouseover="this.style.backgroundColor='#04a004';"
                             onmouseout="this.style.backgroundColor='#07b934';"
-                            <?php if ($order['status'] != 'delivered' || $order['status'] == 'canceled') echo 'disabled'; ?> />
+                            <?php if ($order['status'] != 'delivered') echo 'disabled'; ?> />
                         </form>
                     </td>
                 </tr>
@@ -88,9 +86,9 @@ $result = $stmt->get_result();
     </table>
 </div>
 
-
 <!-- Modal -->
-<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+<!-- Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true" aria-modal="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -112,6 +110,7 @@ $result = $stmt->get_result();
     </div>
 </div>
 
+
 <a href="../dashboard.php">Back to Dashboard</a>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -125,49 +124,43 @@ $(document).ready(function() {
     });
 
     $('#cancelOrderForm').on('submit', function(event) {
-    event.preventDefault(); // Prevent the default form submission
+        event.preventDefault(); // Prevent the default form submission
 
-    $.ajax({
-        url: 'cancel_order.php',
-        type: 'POST',
-        data: $(this).serialize(),
-        success: function(response) {
-            if (response.success) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: response.message,
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    location.reload(); // Reload to see the updated order status
-                });
-            } else {
+        $.ajax({
+            url: 'cancel_order.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                // Handle the response
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: response.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload(); // Reload to see the updated order status
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function() {
                 Swal.fire({
                     title: 'Error!',
-                    text: response.message,
+                    text: 'Something went wrong while canceling your order.',
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
             }
-
-            // Disable buttons for the canceled order
-            const orderId = $('#order_id').val();
-            $('tr[data-orderid="' + orderId + '"] .cancelOrderBtn').prop('disabled', true);
-            $('tr[data-orderid="' + orderId + '"] .reviewForm input[type="submit"]').prop('disabled', true);
-
-            $('#cancelOrderModal').modal('hide'); // Optionally hide the modal
-        },
-        error: function() {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Something went wrong while canceling your order.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
+        });
     });
 });
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>

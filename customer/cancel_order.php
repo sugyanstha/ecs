@@ -5,64 +5,41 @@ include('../database/connection.php');
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $order_id = intval($_POST['order_id']);
-    $message = '';
-    $isError = false;
+    $response = []; // Initialize response array
 
     // Start transaction
     $conn->begin_transaction();
 
     try {
-        // Get the order items and their quantities
-        $itemsQuery = $conn->prepare("SELECT product_id, quantity FROM OrderItems WHERE order_id = ?");
-        $itemsQuery->bind_param("i", $order_id);
-        $itemsQuery->execute();
-        $itemsResult = $itemsQuery->get_result();
+        // First, delete the order items
+        $deleteItemsQuery = $conn->prepare("DELETE FROM OrderItems WHERE order_id = ?");
+        $deleteItemsQuery->bind_param("i", $order_id);
+        $deleteItemsQuery->execute();
         
-        // Update stock for each product
-        while ($item = $itemsResult->fetch_assoc()) {
-            $product_id = $item['product_id'];
-            $quantity = $item['quantity'];
-            
-            // Update stock in the Products table
-            $restockQuery = $conn->prepare("UPDATE Products SET stock = stock + ? WHERE product_id = ?");
-            $restockQuery->bind_param("ii", $quantity, $product_id);
-            $restockQuery->execute();
-            $restockQuery->close();
-        }
-
-        // Cancel the order
-        $cancelQuery = $conn->prepare("UPDATE Orders SET status = 'canceled' WHERE order_id = ?");
-        $cancelQuery->bind_param("i", $order_id);
-        $cancelQuery->execute();
+        // Then, delete the order itself
+        $deleteOrderQuery = $conn->prepare("DELETE FROM Orders WHERE order_id = ?");
+        $deleteOrderQuery->bind_param("i", $order_id);
+        $deleteOrderQuery->execute();
 
         // Commit transaction
         $conn->commit();
         $response['success'] = true;
-        $response['message'] = "Your order has been canceled successfully.";
+        $response['message'] = "Your order has been deleted successfully.";
         
-        $itemsQuery->close();
-        $cancelQuery->close();
+        // Close the prepared statements
+        $deleteItemsQuery->close();
+        $deleteOrderQuery->close();
     } catch (Exception $e) {
         $conn->rollback();
-        $message = "Error canceling order: " . $e->getMessage();
-        // $isError = true;
+        $response['success'] = false;
+        $response['message'] = "Error deleting order: " . $e->getMessage();
     }
 
     // Close connection
     $conn->close();
 
-        // Return JSON response
-        header('Content-Type: application/json');
-        echo json_encode($response);
-
-    // Output the SweetAlert script
-    // echo "<script>
-    //         Swal.fire({
-    //             title: '" . ($isError ? "Error!" : "Success!") . "',
-    //             text: '$message',
-    //             icon: '" . ($isError ? "error" : "success") . "',
-    //             confirmButtonText: 'OK'
-    //         });
-    //       </script>";
+    // Return JSON response
+    header('Content-Type: application/json');
+    echo json_encode($response);
 }
 ?>

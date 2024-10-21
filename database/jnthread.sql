@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 12, 2024 at 02:49 PM
+-- Generation Time: Oct 21, 2024 at 11:00 AM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -32,6 +32,13 @@ CREATE TABLE `admin` (
   `email` varchar(120) NOT NULL,
   `password` varchar(120) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `admin`
+--
+
+INSERT INTO `admin` (`aid`, `email`, `password`) VALUES
+(1, 'superadmin', 'jnthread');
 
 -- --------------------------------------------------------
 
@@ -69,6 +76,15 @@ CREATE TABLE `categories` (
   `name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`category_id`, `name`) VALUES
+(5, 'Hoodies'),
+(6, 'Sweatshirt'),
+(1, 'T-shirt');
+
 -- --------------------------------------------------------
 
 --
@@ -92,7 +108,38 @@ CREATE TABLE `customer` (
 --
 
 INSERT INTO `customer` (`cid`, `name`, `district`, `city`, `mobile`, `email`, `password`, `reset_otp_hash`, `rest_otp_expires_at`) VALUES
-(1, 'abcd', 'ktm', 'newroad', 9800000000, 'ram@gmail.com', '$2y$10$Zz7EemJB8C6YlLFXDEk5qOjJ1eFvu0xnX1LbPq7rUxU/dhU.LQaEG', NULL, NULL);
+(4, 'Sugyan Shrestha', 'BKT', 'Thimi', 9812345678, 'sugyan@gmail.com', '$2y$10$hql/7fyPInRqEl.PqhpSZOWXt51wHOsXDi9dfLfM90hFUiuGhklAG', NULL, NULL),
+(7, 'sfg', 'sdh', 'sfg', 1234567890, 'a@gmail.com', '$2y$10$fKeidRP5xFwM6NIHTn.b9u795QnYILlp9XxHA7DGV2fQUXmY/ej/2', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `orderitems`
+--
+
+CREATE TABLE `orderitems` (
+  `order_item_id` int(11) NOT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `quantity` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `orderitems`
+--
+
+INSERT INTO `orderitems` (`order_item_id`, `order_id`, `product_id`, `quantity`, `price`) VALUES
+(7, 7, 7, 1, 234.00),
+(8, 8, 7, 1, 234.00),
+(9, 9, 7, 1, 234.00),
+(10, 10, 7, 1, 234.00),
+(21, 21, 7, 1, 234.00),
+(22, 22, 7, 1, 234.00),
+(23, 23, 17, 1, 345.00),
+(24, 24, 17, 1, 345.00),
+(25, 25, 7, 1, 234.00),
+(26, 26, 7, 1, 234.00);
 
 -- --------------------------------------------------------
 
@@ -104,10 +151,26 @@ CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
   `cid` int(11) DEFAULT NULL,
   `total_price` decimal(10,2) NOT NULL,
-  `status` enum('pending','shipped','delivered','cancelled') DEFAULT 'pending',
+  `status` enum('pending','shipped','delivered','canceled') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `cid`, `total_price`, `status`, `created_at`, `updated_at`) VALUES
+(7, 4, 234.00, 'canceled', '2024-10-06 16:42:59', '2024-10-06 16:45:14'),
+(8, 4, 234.00, 'delivered', '2024-10-07 17:14:07', '2024-10-07 17:18:26'),
+(9, 4, 234.00, 'canceled', '2024-10-13 14:59:02', '2024-10-13 16:44:44'),
+(10, 4, 234.00, 'canceled', '2024-10-14 11:06:36', '2024-10-14 11:07:17'),
+(21, 4, 234.00, 'canceled', '2024-10-14 11:36:53', '2024-10-15 15:12:47'),
+(22, 4, 234.00, 'canceled', '2024-10-14 12:58:25', '2024-10-15 15:12:22'),
+(23, 4, 345.00, 'canceled', '2024-10-15 13:27:09', '2024-10-15 15:12:09'),
+(24, 4, 345.00, 'delivered', '2024-10-15 15:51:31', '2024-10-15 16:23:44'),
+(25, 4, 234.00, 'delivered', '2024-10-16 14:57:25', '2024-10-20 16:56:52'),
+(26, 4, 234.00, 'pending', '2024-10-20 16:34:07', '2024-10-20 16:34:07');
 
 -- --------------------------------------------------------
 
@@ -142,6 +205,14 @@ CREATE TABLE `products` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`product_id`, `name`, `description`, `price`, `stock`, `category_id`, `image_url`, `created_at`, `updated_at`) VALUES
+(7, 'sdgdf', 'dfhdfg', 234.00, 20, 5, '../img/ECS DFD Level-1.drawio.png', '2024-10-06 16:29:19', '2024-10-20 16:34:07'),
+(17, 'dghrftg', 'dhghgfdh', 345.00, 1, 6, '../img/1728998592_ECS_ERD.drawio.png', '2024-10-15 13:23:12', '2024-10-15 15:51:31');
+
 -- --------------------------------------------------------
 
 --
@@ -149,13 +220,19 @@ CREATE TABLE `products` (
 --
 
 CREATE TABLE `reviews` (
-  `review_id` int(11) NOT NULL,
+  `review_id` int(11) NOT NULL AUTO_INCREMENT,
   `product_id` int(11) DEFAULT NULL,
   `cid` int(11) DEFAULT NULL,
   `rating` int(11) DEFAULT NULL CHECK (`rating` between 1 and 5),
   `comment` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`review_id`),
+  KEY `product_id` (`product_id`),
+  KEY `cid` (`cid`),
+  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`cid`) REFERENCES `customer` (`cid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 --
 -- Indexes for dumped tables
@@ -195,6 +272,14 @@ ALTER TABLE `categories`
 ALTER TABLE `customer`
   ADD PRIMARY KEY (`cid`),
   ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `orderitems`
+--
+ALTER TABLE `orderitems`
+  ADD PRIMARY KEY (`order_item_id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `product_id` (`product_id`);
 
 --
 -- Indexes for table `orders`
@@ -246,19 +331,25 @@ ALTER TABLE `cartitems`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `cid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `cid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `orderitems`
+--
+ALTER TABLE `orderitems`
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -270,7 +361,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -294,6 +385,13 @@ ALTER TABLE `cart`
 ALTER TABLE `cartitems`
   ADD CONSTRAINT `cartitems_ibfk_1` FOREIGN KEY (`cart_id`) REFERENCES `cart` (`cart_id`),
   ADD CONSTRAINT `cartitems_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
+
+--
+-- Constraints for table `orderitems`
+--
+ALTER TABLE `orderitems`
+  ADD CONSTRAINT `orderitems_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  ADD CONSTRAINT `orderitems_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
 
 --
 -- Constraints for table `orders`
