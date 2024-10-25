@@ -1,133 +1,144 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+
 <?php
+// include('../admin/layout/adminheader.php');
+
+// Check if the user is logged in; redirect to login page if not logged in
 session_start();
-include('../database/connection.php');
-
-// Ensure the user is logged in
 if (!isset($_SESSION['adminemail'])) {
-    header("Location: admin_login.php");
-    exit();
+    header("location:adminlogin.php");
 }
+$adminname = $_SESSION['adminemail'];
 
-// Initialize variables
-$product = [];
+// Database connection
+include("../database/connection.php");
 
-// Check if the form was submitted (for updating the product)
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $product_id = intval($_POST['product_id']);
+// Initialize variables for editing
+$name = $description = $price = $stock = $category_id = $product_id = $image = "";
+
+// Editing food item
+if (isset($_POST['edit_product'])) {
+    $product_id = $_POST['product_id'];
     $name = $_POST['name'];
     $description = $_POST['description'];
-    $price = floatval($_POST['price']);
-    $stock = intval($_POST['stock']);
-    $category_id = intval($_POST['category_id']);
-    
-    // Handle image upload if a new image is uploaded
-    $image_query = '';
+    $price = $_POST['price'];
+    $stock = $_POST['stock'];
+    $category = $_POST['category_id'];
+
+    // Handle image upload
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $target_dir = "../img/";
-        $target_file = $target_dir . basename($_FILES["image"]["name"]);
-        $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-
-        // Check for valid image types
-        $allowed_file_types = ['jpg', 'jpeg', 'png', 'gif'];
-        if (in_array($imageFileType, $allowed_file_types)) {
-            if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                $image_query = ", image_url = '$target_file'";
-            } else {
-                die("Error uploading the image.");
-            }
-        } else {
-            die("Only JPG, JPEG, PNG & GIF files are allowed.");
-        }
-    }
-
-        // Validate category ID
-        $category_query = "SELECT * FROM categories WHERE category_id = ?";
-        $category_stmt = $conn->prepare($category_query);
-        $category_stmt->bind_param("i", $category_id);
-        $category_stmt->execute();
-        $category_result = $category_stmt->get_result();
-        if ($category_result->num_rows === 0) {
-            die("Invalid category selected.");
-        }
-
-    // Update the product in the database
-    $query = "UPDATE products SET name = ?, description = ?, price = ?, stock = ?, category_id = ? $image_query WHERE product_id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("ssdiii", $name, $description, $price, $stock, $category_id, $product_id);
-    
-    if ($stmt->execute()) {
-        header("Location: product_list.php");
-        exit();
+        $image = $_FILES['image']['name'];
+        $target = "../img/" . basename($image);
+        move_uploaded_file($_FILES['image']['tmp_name'], $target);
     } else {
-        die("Error updating product: " . $stmt->error);
-    }
-
-    $stmt->close();
-} else {
-    // Fetch product details for the given product ID
-    if (isset($_GET['product_id'])) {
-        $product_id = intval($_GET['product_id']);
-        
-        // Fetch product details
-        $query = "SELECT * FROM products WHERE product_id = ?";
-        $stmt = $conn->prepare($query);
+        // Fetch the existing image URL if no new image is uploaded
+        $stmt = $conn->prepare("SELECT image_url FROM products WHERE product_id = ?");
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $product = $result->fetch_assoc();
-        } else {
-            die("Product not found.");
+        $image_result = $stmt->get_result();
+        if ($image_result->num_rows > 0) {
+            $image_row = $image_result->fetch_assoc();
+            $image = $image_row['image_url'];
         }
+        // If no new image is uploaded, retain the old image
+        //$image = ''; // You might want to fetch the current image from the database if needed
+    }
+
+    // Prepare SQL statement
+    $sql = "UPDATE products SET name='$name', description='$description', price='$price', stock='$stock', category_id='$category'";
+
+    // Only update the image if it's new
+    if ($image) {
+        $sql .= ", image_url='$image'";
+    }
+
+    $sql .= " WHERE product_id='$product_id'";
+    
+    if ($conn->query($sql)===TRUE ) {
+        echo "<script>
+        swal({
+            title: 'Product Updated',
+            text: 'Product updated successfully!',
+            icon: 'success',
+            confirmButtonText: 'Ok',
+        }).then((function) => {
+        
+            window.location.href = 'product_list.php';
+        
+        });
+    </script>";
+    exit;
     } else {
-        die("Product ID is missing.");
+        echo "<script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Update Failed',
+                text: 'An error occured while updating the product',
+                confirmButtonText: 'OK'
+            });
+        </script>";
+        // exit;
     }
 }
 
-// Set default values to avoid undefined array keys
-$name = isset($product['name']) ? htmlspecialchars($product['name']) : '';
-$description = isset($product['description']) ? htmlspecialchars($product['description']) : '';
-$price = isset($product['price']) ? htmlspecialchars($product['price']) : '';
-$stock = isset($product['stock']) ? htmlspecialchars($product['stock']) : '';
-$category_id = isset($product['category_id']) ? htmlspecialchars($product['category_id']) : '';
+// View food details for editing
+if (isset($_POST['edit'])) {
+    $product_id = $_POST['product_id'];
+    $sql = "SELECT * FROM products WHERE product_id='$product_id'";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $name = $row['name'];
+        $description = $row['description'];
+        $price = $row['price'];
+        $stock = $row['stock'];
+        $category_id = $row['category_id'];
+        $product_id = $row['product_id'];
+        $image = $row['image_url'];
+    } else {
+        die("No food item found with the given ID.");
+    }
+}
 ?>
+        
+        <!-- Product Edit Form -->
+        <body>
+        <link rel="stylesheet" href="../css/form.css">
+        <form method="post" action="" enctype="multipart/form-data">
+            <div class="container">
+                <label for="productname">Food Name</label>
+                <input type="text" name="name" placeholder="Enter Food Name" required value="<?php echo htmlspecialchars($name); ?>">
 
-<link rel="stylesheet" href="../css/form.css">
+                <label for="productdescription">Food Description</label>
+                <textarea name="description" placeholder="Enter Food Description" required><?php echo htmlspecialchars($description); ?></textarea>
 
-<form method="POST" action="edit_product.php" enctype="multipart/form-data">
-    <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['product_id']); ?>">
-    
-    <div class="container">
-        <label for="name">Product Name</label>
-        <input type="text" name="name" value="<?php echo $name; ?>" required>
+                <label for="price">Price</label>
+                <input type="number" name="price" step="0.01" placeholder="Price" required value="<?php echo htmlspecialchars($price); ?>">
+                
+                <label for="stock">Stock</label>
+                <input type="number" name="stock" placeholder="Stock" required value="<?php echo htmlspecialchars($stock); ?>">
 
-        <label for="description">Product Description</label>
-        <textarea name="description" required><?php echo $description; ?></textarea>
+                <label for="category">Category</label>
+                <select name="category_id" required>
+                    <option value='choose' disabled>Select Category</option>
+                    <?php
+                    $category_query = "SELECT * FROM categories";
+                    $categories = mysqli_query($conn, $category_query);
+                    while ($category = mysqli_fetch_assoc($categories)) {
+                        $selected = ($category['category_id'] == $category_id) ? 'selected' : '';
+                        echo "<option value='{$category['category_id']}' $selected>{$category['name']}</option>";
+                    }
+                    ?>
+                </select>
 
-        <label for="price">Price</label>
-        <input type="number" step="0.01" name="price" value="<?php echo $price; ?>" required>
+                <label for="image_url">Product Image</label>
+                <input type="file" name="image" value="<?php //echo htmlspecialchars($image); ?>" accept="image/*">
+                <img src="../img/<?php echo htmlspecialchars($image); ?>" width="100px" alt="Product Image">
+                <!-- <p>Current Image: <img src="<?php //echo htmlspecialchars($product['image_url']); ?>" width="100px" alt="Current Product Image"></p> -->
 
-        <label for="stock">Stock</label>
-        <input type="number" name="stock" value="<?php echo $stock; ?>" required>
-
-        <label for="category">Category</label>
-        <select name="category_id" required>
-            <?php
-            $category_query = "SELECT * FROM Categories";
-            $categories = mysqli_query($conn, $category_query);
-            while ($category = mysqli_fetch_assoc($categories)) {
-                $selected = ($category_id == $category['category_id']) ? 'selected' : '';
-                echo "<option value='{$category['category_id']}' $selected>{$category['name']}</option>";
-            }
-            ?>
-        </select>
-
-        <label for="image">Product Image</label>
-        <input type="file" name="image" accept="image/*">
-        <p>Current Image: <img src="<?php echo htmlspecialchars($product['image_url']); ?>" width="100px" alt="Current Product Image"></p>
-
-        <input type="submit" value="Update Product" name="edit"/>
-        <button type="button" onclick="window.location.href='product_list.php'">Back</button>
-    </div>
-</form>
+                <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product_id); ?>" />
+                <button type="submit" name="edit_product">Update Product</button>
+                <button type="button" onclick="window.location.href='product_list.php'">Back</button>
+            </div>
+        </form>
