@@ -18,6 +18,7 @@ if (!isset($_SESSION['email'])) {
 
 $email = $_SESSION['email'];
 
+// Add to cart part  
 if (isset($_POST['addtocart'])) {
     $product_id = intval($_POST['product_id']);
     $quantity = intval($_POST['quantity']);
@@ -61,8 +62,10 @@ if (isset($_SESSION['message'])) {
     // Clear the message after displaying it
     unset($_SESSION['message']);
 }
+//Add to cart code end here
 
-// Fetch all products
+
+// Fetch all products (Displaying Product list in card view)
 $sql = "SELECT product_id, name, description, price, stock, image_url FROM products";
 $result = $conn->query($sql);
 ?>
@@ -70,7 +73,7 @@ $result = $conn->query($sql);
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <div class="container mt-5">
-    <h1 class="mb-4">Available Products</h1>
+    <h1 class="mb-4">All Products</h1>
     <div class="row">
         <?php if ($result && $result->num_rows > 0) { 
             while ($row = $result->fetch_assoc()) { ?>
@@ -90,30 +93,13 @@ $result = $conn->query($sql);
                         </p>
 
                         <?php if ($row['stock'] > 0): ?>
-                            <!-- Add to Cart Form 
-                            <form method="post" action="cart.php" class="mb-3">
-                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
-                                <div class="mb-3">
-                                    <label for="quantity" class="form-label">Quantity:</label>
-                                    <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="<?php echo $row['stock']; ?>" required>
-                                </div>
-                                <button type="submit" name="addtocart" class="btn btn-primary w-100">Add to Cart</button>
-                            </form>-->
-                            
                             <!-- View Product Details -->
                             <a href="product_details.php?id=<?php echo $row['product_id']; ?>" class="btn btn-info w-100">View Details</a>
                             <br>
+                            <br>
                             
-                            <!-- Buy Now Form (Direct Order) -->
-                            <!-- Buy Now Form (Direct Order) -->
-<form method="post" action="place_order.php" class="mb-3">
-    <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
-    <div class="mb-3">
-        <label for="buy_quantity_<?php echo $row['product_id']; ?>" class="form-label">Quantity:</label>
-        <input type="number" name="quantity" id="buy_quantity_<?php echo $row['product_id']; ?>" class="form-control" value="1" min="1" max="<?php echo $row['stock']; ?>" required>
-    </div>
-    <button type="submit" class="btn btn-warning w-100">Buy Now</button>
-</form>
+                            <!-- Buy Now (Place Order Modal Trigger) -->
+                            <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#checkoutModal" onclick="setProductDetails(<?php echo $row['product_id']; ?>, '<?php echo $row['name']; ?>', <?php echo $row['price']; ?>, <?php echo $row['stock']; ?>)">Place Order</button>
 
                         <?php else: ?>
                             <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
@@ -130,6 +116,69 @@ $result = $conn->query($sql);
     </div>
 </div>
 
+<!-- Modal for Checkout -->
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="checkoutModalLabel">Place Order</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="place_order.php" id="orderForm">
+            <input type="hidden" name="product_id" id="product_id">
+            <div class="mb-3">
+                <label for="order_name" class="form-label">Product Name</label>
+                <input type="text" id="order_name" class="form-control" disabled>
+            </div>
+            <div class="mb-3">
+                <label for="order_price" class="form-label">Price</label>
+                <input type="text" id="order_price" class="form-control" disabled>
+            </div>
+            <div class="mb-3">
+                <label for="order_quantity" class="form-label">Quantity</label>
+                <input type="number" name="quantity" id="order_quantity" class="form-control" min="1" required onchange="updateTotalPrice()">
+            </div>
+            <div class="mb-3">
+                <label for="order_total_price" class="form-label">Total Price</label>
+                <input type="text" id="order_total_price" class="form-control" disabled>
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="mb-3">
+                <label for="payment_method" class="form-label">Payment Method</label>
+                <select id="payment_method" name="payment_method" class="form-select" required onchange="togglePaymentFields()">
+                    <option value="credit_card">Credit Card</option>
+                    <option value="cod">Cash on Delivery</option>
+                    <option value="mobile_payment">Mobile Payment</option>
+                </select>
+            </div>
+
+            <!-- Credit Card Details (show when Credit Card is selected) -->
+            <div id="credit_card_details" class="payment-fields mb-3" style="display: none;">
+                <label for="credit_card_number" class="form-label">Card Number</label>
+                <input type="text" name="credit_card_number" class="form-control" id="credit_card_number" placeholder="Enter your card number">
+                <label for="credit_card_expiry" class="form-label">Expiry Date</label>
+                <input type="text" name="credit_card_expiry" class="form-control" id="credit_card_expiry" placeholder="MM/YY">
+                <label for="credit_card_cvc" class="form-label">CVC</label>
+                <input type="text" name="credit_card_cvc" class="form-control" id="credit_card_cvc" placeholder="Enter CVC">
+            </div>
+
+            <!-- Mobile Payment Details (show when Mobile Payment is selected) -->
+            <div id="mobile_payment_details" class="payment-fields mb-3" style="display: none;">
+                <label for="mobile_payment_number" class="form-label">Mobile Number</label>
+                <input type="text" name="mobile_payment_number" class="form-control" id="mobile_payment_number" placeholder="Enter your mobile number">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Confirm Order</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="../js/checkout.js"></script>
 
 <?php // include('customer/layout/cfooter.php'); ?>

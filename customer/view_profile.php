@@ -50,7 +50,17 @@ if ($result && $result->num_rows > 0) {
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($row['email']); ?>" readonly>
         </div>
-        <a href="../dashboard.php">Back</a>
-        <a href="edit_profile.php">Edit Profil</a>
+        <button onclick="window.location.href='../dashboard.php';" 
+        style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none;
+        border-radius: 5px; cursor: pointer; text-decoration: none; margin-right: 10px;"
+        onmouseover="this.style.backgroundColor='#45a049';" onmouseout="this.style.backgroundColor='#4CAF50';">
+        Back
+        </button>
+        <button onclick="window.location.href='edit_profile.php';" 
+        style="padding: 10px 20px; background-color: #008CBA; color: white; border: none;
+        border-radius: 5px; cursor: pointer;" onmouseover="this.style.backgroundColor='#007B8F';"
+        onmouseout="this.style.backgroundColor='#008CBA';">
+        Edit Profile
+        </button>
     </div>
 </div>
