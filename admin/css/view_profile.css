@@ -1,0 +1,68 @@
+/* body {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    
+} */
+
+
+/* Center the box both horizontally and vertically */
+.box-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  /* Style the box */
+  .box {
+    background-color: #324960;
+    padding: 20px;
+    border-radius: 10px;
+    color: #ffffff;
+    text-align: center; /* Center the text horizontally */
+  }
+  
+  /* Style the heading */
+  .box h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  /* Style the form groups (label and input) */
+  .box .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .box label {
+    font-size: 18px;
+  }
+  
+  .box input {
+    width: -webkit-fill-available;
+    padding: 8px;
+    margin: 5px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white background */
+    color: #ffffff; /* Text color */
+  }
+  
+  /* Style the "Back" button */
+  .box .back-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #4fc3a1; /* Button color */
+    color: #ffffff; /* Text color */
+    text-decoration: none; /* Remove underline from the link */
+    border-radius: 5px;
+    transition: background-color 0.3s ease; /* Smooth color transition on hover */
+  }
+  
+  /* Change button color on hover */
+  .box .back-button:hover {
+    background-color: #2e8e7a; /* Darker shade of button color on hover */
+    transform: scale(1.02);
+  }

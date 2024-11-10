@@ -82,7 +82,7 @@ if (isset($_POST['edit_product'])) {
     }
 }
 
-// View food details for editing
+// View product details for editing
 if (isset($_POST['edit'])) {
     $product_id = $_POST['product_id'];
     $sql = "SELECT * FROM products WHERE product_id='$product_id'";
@@ -97,7 +97,7 @@ if (isset($_POST['edit'])) {
         $product_id = $row['product_id'];
         $image = $row['image_url'];
     } else {
-        die("No food item found with the given ID.");
+        die("No product found with the given ID.");
     }
 }
 ?>
@@ -107,11 +107,11 @@ if (isset($_POST['edit'])) {
         <link rel="stylesheet" href="../css/form.css">
         <form method="post" action="" enctype="multipart/form-data">
             <div class="container">
-                <label for="productname">Food Name</label>
-                <input type="text" name="name" placeholder="Enter Food Name" required value="<?php echo htmlspecialchars($name); ?>">
+                <label for="productname">Product Name</label>
+                <input type="text" name="name" placeholder="Enter Product Name" required value="<?php echo htmlspecialchars($name); ?>">
 
-                <label for="productdescription">Food Description</label>
-                <textarea name="description" placeholder="Enter Food Description" required><?php echo htmlspecialchars($description); ?></textarea>
+                <label for="productdescription">Product Description</label>
+                <textarea name="description" placeholder="Enter Product Description" required><?php echo htmlspecialchars($description); ?></textarea>
 
                 <label for="price">Price</label>
                 <input type="number" name="price" step="0.01" placeholder="Price" required value="<?php echo htmlspecialchars($price); ?>">

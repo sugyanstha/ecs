@@ -74,7 +74,7 @@ if (!$product_result) {
                                 <td><?php echo htmlspecialchars($row['description']); ?></td>
                                 <td><?php echo htmlspecialchars($row['price']); ?></td>
                                 <td><?php echo htmlspecialchars($row['stock']); ?></td>
-                                <td><img src="<?php echo htmlspecialchars($row['image_url']); ?>" alt="Product Image" width="50"></td>
+                                <td><img src="../img/<?php echo htmlspecialchars($row['image_url']); ?>" alt="Product Image" width="50"></td>
                                 <td><?php echo htmlspecialchars($row['category_name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['created_at']); ?></td>
                                 <td><?php echo htmlspecialchars($row['updated_at']); ?></td>
