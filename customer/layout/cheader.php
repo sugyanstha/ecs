@@ -35,14 +35,34 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="../dashboard.php">Home</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Category
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <?php
+                            // Database connection
+                            include("../database/connection.php");
+
+                            // Fetch categories from database
+                            $sql = "SELECT * FROM categories";
+                            $result = $conn->query($sql);
+
+                            // Loop through categories to create dropdown links
+                            if ($result->num_rows > 0) {
+                                while ($row = $result->fetch_assoc()) {
+                                    echo '<li><a class="dropdown-item" href="view_category.php?category_id=' . $row['category_id'] . '">' . htmlspecialchars($row['name']) . '</a></li>';
+                                }
+                            }
+                            ?>
+                        </ul>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/view_product.php">Products</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/myorders.php">My orders</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/cart.php">Shopping Cart</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="http://localhost/ecs/customer/view_profile.php">My Profile</a>

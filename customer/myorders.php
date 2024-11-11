@@ -55,7 +55,7 @@ $result = $stmt->get_result();
                     <td><?php echo number_format($order['item_price'], 2); ?></td>
                     <td><?php echo htmlspecialchars($order['quantity']); ?></td>
                     <td><?php echo number_format($order['quantity'] * $order['item_price'], 2); ?></td>
-                    <td><img src="<?php echo htmlspecialchars($order['image_url']); ?>" alt="Product Image" width="100"></td>
+                    <td><img src="../img/<?php echo htmlspecialchars($order['image_url']); ?>" alt="Product Image" width="100"></td>
                     <td><?php echo date('d-m-Y', strtotime($order['order_date'])); ?></td>
                     <td><?php echo htmlspecialchars($order['status']); ?></td>
                     <td>

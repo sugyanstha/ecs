@@ -72,13 +72,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['mobile'] = $mobile;
             $_SESSION['email'] = $email;
             // Redirect to the profile page with a success message
-            header("Location: profile.php?success=1");
+            header("Location: view_profile.php?success=1");
             exit;
         } else {
             // Redirect to the profile page with an error message
             // header("Location: profile.php?error=1");
             // Redirect to the profile page with a specific error message
-            header("Location: profile.php?error=db_update_failed");
+            header("Location: view_profile.php?error=db_update_failed");
             exit;
         }
     } // Display errors using SweetAlert

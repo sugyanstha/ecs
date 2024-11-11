@@ -79,10 +79,13 @@ if (isset($_GET['product_id'])) {
 
 <div class="container">
     <!-- Display product details -->
-    <h2><?php echo htmlspecialchars($product['name']); ?></h2>
-    <p><?php echo htmlspecialchars($product['description']); ?></p>
-    <p>Price: $<?php echo htmlspecialchars($product['price']); ?></p>
-    <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" width="200">
+    <h2 align="center">Product Review</h2>
+    <h2>Product Name: <?php echo htmlspecialchars($product['name']); ?></h2>
+    <h3>Product Description:
+        <snap><?php echo htmlspecialchars($product['description']); ?></span>
+    </h3>
+    <p>Price: Nrs.<?php echo htmlspecialchars($product['price']); ?></p>
+    <img src="../img/<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" width="200">
 
     <!-- Display review form -->
     <h3>Leave a Review</h3>
@@ -102,6 +105,8 @@ if (isset($_GET['product_id'])) {
         <textarea name="comment" placeholder="Write your review here" required></textarea>
         
         <button type="submit">Submit Review</button>
+        <button type="button" onclick="window.location.href='myorders.php'">Go Back</button>
+
     </form>
 
     <!-- Display all reviews for the product -->

@@ -79,7 +79,7 @@ $result = $conn->query($sql);
             while ($row = $result->fetch_assoc()) { ?>
             <div class="col-md-4">
                 <div class="card mb-4">
-                    <img src="<?php echo htmlspecialchars($row['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['name']); ?>" />
+                    <img src="../img/<?php echo htmlspecialchars($row['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['name']); ?>" />
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
                         <p class="card-text"><?php echo htmlspecialchars($row['description']); ?></p>

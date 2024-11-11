@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../database/connection.php');
+include('../admin/layout/adminheader.php');
 
 // Check if user is logged in
 if (!isset($_SESSION['adminemail'])) {
