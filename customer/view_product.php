@@ -74,10 +74,10 @@ $result = $conn->query($sql);
 
 <div class="container mt-5">
     <h1 class="mb-4">All Products</h1>
-    <div class="row">
+    <div id="productGrid" class="row">
         <?php if ($result && $result->num_rows > 0) { 
             while ($row = $result->fetch_assoc()) { ?>
-            <div class="col-md-4">
+            <div class="col-md-4 product-card">
                 <div class="card mb-4">
                     <img src="../img/<?php echo htmlspecialchars($row['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['name']); ?>" />
                     <div class="card-body">
@@ -144,12 +144,24 @@ $result = $conn->query($sql);
                 <input type="text" id="order_total_price" class="form-control" disabled>
             </div>
 
+            <!-- Shipping Address -->
+            <div class="mb-3">
+                <label for="shipping_address" class="form-label">Shipping Address</label>
+                <textarea id="shipping_address" name="shipping_address" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <!-- City -->
+            <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" name="city" id="city" class="form-control" required>
+            </div>
+
             <!-- Payment Method Selection -->
             <div class="mb-3">
                 <label for="payment_method" class="form-label">Payment Method</label>
                 <select id="payment_method" name="payment_method" class="form-select" required onchange="togglePaymentFields()">
-                    <option value="credit_card">Credit Card</option>
                     <option value="cod">Cash on Delivery</option>
+                    <option value="credit_card">Credit Card</option>
                     <option value="mobile_payment">Mobile Payment</option>
                 </select>
             </div>

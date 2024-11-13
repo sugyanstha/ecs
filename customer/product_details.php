@@ -100,12 +100,24 @@ $review_result = $review_stmt->get_result();
                 <input type="text" id="order_total_price" class="form-control" disabled>
             </div>
 
+            <!-- Shipping Address -->
+            <div class="mb-3">
+                <label for="shipping_address" class="form-label">Shipping Address</label>
+                <textarea id="shipping_address" name="shipping_address" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <!-- City -->
+            <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" name="city" id="city" class="form-control" required>
+            </div>
+
             <!-- Payment Method Selection -->
             <div class="mb-3">
                 <label for="payment_method" class="form-label">Payment Method</label>
                 <select id="payment_method" name="payment_method" class="form-select" required onchange="togglePaymentFields()">
-                    <option value="credit_card">Credit Card</option>
                     <option value="cod">Cash on Delivery</option>
+                    <option value="credit_card">Credit Card</option>
                     <option value="mobile_payment">Mobile Payment</option>
                 </select>
             </div>

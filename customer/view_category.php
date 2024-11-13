@@ -3,25 +3,62 @@
 include("../database/connection.php");
 include("../customer/layout/cheader.php");
 
-// Check if category ID is set in URL
-if (isset($_GET['category_id'])) {
+// Fetch all categories to display in the select dropdown
+$sql_categories = "SELECT * FROM categories";
+$categories_result = $conn->query($sql_categories);
+
+// Check if category ID is set in URL for filtering products
+if (isset($_GET['category_id']) && !empty($_GET['category_id'])) {
     $category_id = intval($_GET['category_id']);
     
     // Fetch products for the selected category
-    $sql = "SELECT * FROM products WHERE category_id = ?";
-    $stmt = $conn->prepare($sql);
+    $sql_products = "SELECT * FROM products WHERE category_id = ?";
+    $stmt = $conn->prepare($sql_products);
     $stmt->bind_param("i", $category_id);
     $stmt->execute();
     $result = $stmt->get_result();
 } else {
-    // Handle the case where category_id is not set
-    echo "<p>Category not selected.</p>";
-    exit; // Stop further execution if category_id is not set
+    // Fetch all products if no category selected
+    $sql_products = "SELECT * FROM products";
+    $result = $conn->query($sql_products);
 }
 ?>
 
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Products</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+
 <div class="container mt-5">
-    <h1 class="mb-4">Products in Category</h1>
+    <h1 class="mb-4">Products</h1>
+    
+    <!-- Category Select Dropdown -->
+    <div class="category-section mb-4">
+        <form method="get" action="">
+            <label for="category-select" class="form-label">Select Category</label>
+            <select id="category-select" name="category_id" class="form-select" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                <?php 
+                if ($categories_result->num_rows > 0) {
+                    while ($category = $categories_result->fetch_assoc()) { 
+                        $selected = (isset($_GET['category_id']) && $_GET['category_id'] == $category['category_id']) ? 'selected' : '';
+                        echo "<option value='{$category['category_id']}' {$selected}>{$category['name']}</option>";
+                    }
+                } else {
+                    echo "<option value=''>No categories available</option>";
+                }
+                ?>
+            </select>
+        </form>
+    </div>
+
+    <!-- Products Display Section -->
     <div class="row">
         <?php if ($result && $result->num_rows > 0) { 
             while ($row = $result->fetch_assoc()) { ?>
@@ -41,14 +78,9 @@ if (isset($_GET['category_id'])) {
                         </p>
 
                         <?php if ($row['stock'] > 0): ?>
-                            <!-- View Product Details -->
                             <a href="product_details.php?id=<?php echo $row['product_id']; ?>" class="btn btn-info w-100">View Details</a>
-                            <br>
-                            <br>
-                            
-                            <!-- Buy Now (Place Order Modal Trigger) -->
+                            <br><br>
                             <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#checkoutModal" onclick="setProductDetails(<?php echo $row['product_id']; ?>, '<?php echo $row['name']; ?>', <?php echo $row['price']; ?>, <?php echo $row['stock']; ?>)">Place Order</button>
-
                         <?php else: ?>
                             <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
                         <?php endif; ?>
@@ -63,6 +95,9 @@ if (isset($_GET['category_id'])) {
         <?php } ?>
     </div>
 </div>
+
+
+<!-- Need to add shipping address and City in checkout form and need to change order table query-->
 
 <!-- Modal for Checkout -->
 <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
@@ -92,12 +127,24 @@ if (isset($_GET['category_id'])) {
                 <input type="text" id="order_total_price" class="form-control" disabled>
             </div>
 
+            <!-- Shipping Address -->
+            <div class="mb-3">
+                <label for="shipping_address" class="form-label">Shipping Address</label>
+                <textarea id="shipping_address" name="shipping_address" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <!-- City -->
+            <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" name="city" id="city" class="form-control" required>
+            </div>
+
             <!-- Payment Method Selection -->
             <div class="mb-3">
                 <label for="payment_method" class="form-label">Payment Method</label>
                 <select id="payment_method" name="payment_method" class="form-select" required onchange="togglePaymentFields()">
-                    <option value="credit_card">Credit Card</option>
                     <option value="cod">Cash on Delivery</option>
+                    <option value="credit_card">Credit Card</option>
                     <option value="mobile_payment">Mobile Payment</option>
                 </select>
             </div>
@@ -125,6 +172,7 @@ if (isset($_GET['category_id'])) {
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="../js/checkout.js"></script>
+
+</body>
+</html>
