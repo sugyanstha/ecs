@@ -63,6 +63,10 @@ if (!$category_result) {
                 </tr>
             </thead>
             <tbody>
+                <form method="post" action="create_category.php" style="display:inline;">
+                    <!-- <input type="hidden" value="<?php //echo $row['category_id']; ?>" name="category_id" /> -->
+                    <input type="submit" value="Add category" name="add" />
+                </form>
                 <?php if ($category_result && $category_result->num_rows > 0) {
                     while ($row = $category_result->fetch_assoc()) { ?>
                         <tr>
@@ -70,10 +74,6 @@ if (!$category_result) {
                             <td><?php echo htmlspecialchars($row['name']); ?></td> <!-- Corrected field name -->
                             <td>
                                 <div class="button-row">
-                                    <form method="post" action="create_category.php" style="display:inline;">
-                                        <!-- <input type="hidden" value="<?php //echo $row['category_id']; ?>" name="category_id" /> -->
-                                        <input type="submit" value="Add category" name="add" />
-                                    </form>
                                     <form method="post" action=" " style="display:inline;">
                                         <input type="hidden" value="<?php echo $row['category_id']; ?>" name="category_id" />
                                         <input type="submit" class="btn-danger" value="Delete" name="delete"
