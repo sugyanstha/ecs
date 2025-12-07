@@ -60,6 +60,9 @@
                     <a class="nav-link active" href="http://localhost/ecs/customer/view_product.php">Products</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link active" href="http://localhost/ecs/customer/cart.php">My Cart</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link active" href="http://localhost/ecs/customer/myorders.php">My Orders</a>
                 </li>
                 <li class="nav-item">

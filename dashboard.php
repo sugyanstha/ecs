@@ -1,6 +1,5 @@
 <link rel="stylesheet" href="css/card.css">
 
-
 <?php
 session_start();
 include('customer/layout/cheader.php'); // Including header layout
@@ -12,17 +11,74 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
-$email = $_SESSION['email']; // Fetch logged-in user email
-$user_id = $_SESSION['cid']; // Retrieve the logged-in user ID from the session
+$email   = $_SESSION['email']; // Fetch logged-in user email
+$user_id = $_SESSION['cid'];   // Retrieve the logged-in user ID from the session
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// === CART EXPIRY MESSAGE (from algorithms/cart_abandonment.php) ===
+require_once(__DIR__ . '/algorithms/cart_abandonment.php');
+
+// Get latest cart info for this user (if any)
+$cartInfo = getUserCartExpiryInfo((int)$user_id);
+
+// Show banner only if a cart exists
+if ($cartInfo !== null) {
+    $expiryTime = $cartInfo['expiry_at']; // already formatted Y-m-d H:i:s
+
+    echo '
+    <div style="
+        max-width: 800px;
+        margin: 15px auto;
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-left: 6px solid #ffc107;
+        border-radius: 6px;
+        padding: 14px 18px;
+        color: #856404;
+        font-family: Arial, sans-serif;
+    ">
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="
+                font-size:22px;
+                line-height:1;
+                margin-top:2px;
+            ">
+                ⚠
+            </div>
+            <div>
+                <div style="font-weight:bold; font-size:16px; margin-bottom:4px;">
+                    Your Cart Will Expire Soon
+                </div>
+                <div style="font-size:14px;">
+                    Your cart will be automatically cleared on:<br>
+                    <span style="font-weight:bold;">' . htmlspecialchars($expiryTime) . '</span>
+                </div>
+                <div style="margin-top:6px;">
+                    <a href="customer/cart.php" 
+                       style="display:inline-block;
+                              padding:6px 12px;
+                              background:#28a745;
+                              color:#fff;
+                              text-decoration:none;
+                              border-radius:4px;
+                              font-size:13px;">
+                        Go to My Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>';
+}
+// === END CART EXPIRY MESSAGE ===
+
 /**
  * Function to build user's category preference vector
  */
-function getUserPreferenceVector($conn, $cid, $categories) {
+function getUserPreferenceVector($conn, $cid, $categories)
+{
     $preference_vector = array_fill_keys($categories, 0);
 
     // Fetch category preferences based on orders
@@ -62,7 +118,8 @@ function getUserPreferenceVector($conn, $cid, $categories) {
 /**
  * Function to build product vectors
  */
-function getProductVectors($conn, $categories) {
+function getProductVectors($conn, $categories)
+{
     $product_vectors = [];
 
     $query = "SELECT product_id, category_id, name, description, price, image_url FROM Products";
@@ -81,7 +138,8 @@ function getProductVectors($conn, $categories) {
 /**
  * Function to compute cosine similarity
  */
-function computeCosineSimilarity($user_vector, $product_vector) {
+function computeCosineSimilarity($user_vector, $product_vector)
+{
     $dot_product = 0;
     $user_magnitude = 0;
     $product_magnitude = 0;
@@ -103,7 +161,8 @@ function computeCosineSimilarity($user_vector, $product_vector) {
 /**
  * Function to get recommended products
  */
-function getRecommendedProducts($user_vector, $product_vectors, $limit = 10) {
+function getRecommendedProducts($user_vector, $product_vectors, $limit = 10)
+{
     $recommendations = [];
 
     foreach ($product_vectors as $product) {
@@ -123,7 +182,8 @@ function getRecommendedProducts($user_vector, $product_vectors, $limit = 10) {
 /**
  * Function to display recommended products
  */
-function displayRecommendedProducts($products) {
+function displayRecommendedProducts($products)
+{
     if (empty($products)) {
         echo "<p>No recommendations available at this time.</p>";
         return;
@@ -134,24 +194,56 @@ function displayRecommendedProducts($products) {
 
     // Container for the grid layout of products
     echo '<div class="product-grid">';
+
     foreach ($products as $product) {
         $image_url = htmlspecialchars($product['image_url']);
         $product_name = htmlspecialchars($product['name']);
         $product_description = htmlspecialchars($product['description']);
         $product_price = number_format($product['price'], 2);
+        $product_id = (int)$product['product_id'];
 
         echo '
         <div class="product-card">
             <div class="product-image">
                 <img src="img/' . $image_url . '" alt="' . $product_name . '" class="img-fluid">
             </div>
+
             <div class="product-details">
                 <h3>' . $product_name . '</h3>
                 <p>' . $product_description . '</p>
                 <p><strong>Price: NRs ' . $product_price . '</strong></p>
+
+                <!-- First row buttons: View Details + Add to Cart -->
+                <div class="product-actions" style="display:flex; gap:8px; margin-top:10px;">
+                    <!-- View Details goes to customer/product_details.php and uses ?id= like your other page -->
+                    <a href="customer/product_details.php?id=' . $product_id . '" 
+                       class="btn btn-info" 
+                       style="flex:1; text-align:center;">
+                        View Details
+                    </a>
+
+                    <!-- Add to Cart posts to customer/add_to_cart.php (from project root) -->
+                    <form action="customer/add_to_cart.php" method="post" style="flex:1;">
+                        <input type="hidden" name="product_id" value="' . $product_id . '">
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" name="addtocart" class="btn btn-primary" style="width:100%;">
+                            Add to Cart
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Second row: Place Order button -->
+                <form action="customer/place_order.php" method="post" style="margin-top:10px; width:100%; text-align:center;">
+                    <input type="hidden" name="product_id" value="' . $product_id . '">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-success" style="width:100%;">
+                        Place Order
+                    </button>
+                </form>
             </div>
         </div>';
     }
+
     echo '</div>';
 }
 
@@ -174,4 +266,5 @@ $recommended_products = getRecommendedProducts($user_vector, $product_vectors, 1
 
 // Step 5: Display recommended products
 displayRecommendedProducts($recommended_products);
+
 ?>

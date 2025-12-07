@@ -18,35 +18,113 @@ if (!isset($_SESSION['email'])) {
 
 $email = $_SESSION['email'];
 
+// Get logged-in customer ID (cid)
+if (isset($_SESSION['cid'])) {
+    $cid = (int)$_SESSION['cid'];
+} else {
+    $cid = null;
+    $stmt = $conn->prepare("SELECT cid FROM customer WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->bind_result($cid_db);
+    if ($stmt->fetch()) {
+        $cid = (int)$cid_db;
+        $_SESSION['cid'] = $cid;
+    }
+    $stmt->close();
+
+    if ($cid === null) {
+        header('Location: login.php');
+        exit();
+    }
+}
+
 // Add to cart part  
 if (isset($_POST['addtocart'])) {
     $product_id = intval($_POST['product_id']);
-    $quantity = intval($_POST['quantity']);
+    $quantity   = intval($_POST['quantity']);
+    if ($quantity <= 0) {
+        $quantity = 1;
+    }
 
+    // Get product and stock
     $stmt = $conn->prepare("SELECT name, description, price, stock FROM products WHERE product_id = ?");
     $stmt->bind_param("i", $product_id);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $result  = $stmt->get_result();
     $product = $result->fetch_assoc();
+    $stmt->close();
 
     if ($product && $product['stock'] >= $quantity) {
-        // Use prepared statement to prevent SQL injection
-        $sql = "INSERT INTO cart (product_id, name, description, price, quantity) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("isssi", $product_id, $product['name'], $product['description'], $product['price'], $quantity);
-        
-        if ($stmt->execute()) {
-            // Set session message for success
-            $_SESSION['message'] = ['type' => 'success', 'text' => 'Product added to cart successfully'];
-            header("Location: cart.php");
-            exit();
-        } else {
-            // Set session message for error
-            $_SESSION['message'] = ['type' => 'error', 'text' => 'Error adding product to cart!'];
+
+        // 1) Get or create cart row for this customer
+        $cart_id = null;
+
+        $stmt = $conn->prepare("SELECT cart_id FROM cart WHERE cid = ? ORDER BY cart_id DESC LIMIT 1");
+        $stmt->bind_param("i", $cid);
+        $stmt->execute();
+        $stmt->bind_result($existing_cart_id);
+        if ($stmt->fetch()) {
+            $cart_id = (int)$existing_cart_id;
+        }
+        $stmt->close();
+
+        if ($cart_id === null) {
+            // Create new cart (created_at has default)
+            $stmt = $conn->prepare("INSERT INTO cart (cid) VALUES (?)");
+            $stmt->bind_param("i", $cid);
+            if ($stmt->execute()) {
+                $cart_id = $stmt->insert_id;
+            }
+            $stmt->close();
+
+            if ($cart_id === null) {
+                $_SESSION['message'] = ['type' => 'error', 'text' => 'Error creating cart!'];
+            }
+        }
+
+        if ($cart_id !== null) {
+            // 2) Check if this product already in cartitems
+            $stmt = $conn->prepare("SELECT cart_item_id, quantity FROM cartitems WHERE cart_id = ? AND product_id = ? LIMIT 1");
+            $stmt->bind_param("ii", $cart_id, $product_id);
+            $stmt->execute();
+            $stmt->bind_result($cart_item_id, $existing_qty);
+            $has_item = $stmt->fetch();
+            $stmt->close();
+
+            if ($has_item) {
+                // Update quantity
+                $new_qty = $existing_qty + $quantity;
+                if ($new_qty > $product['stock']) {
+                    $new_qty = $product['stock'];
+                }
+                $stmt = $conn->prepare("UPDATE cartitems SET quantity = ? WHERE cart_item_id = ?");
+                $stmt->bind_param("ii", $new_qty, $cart_item_id);
+                if ($stmt->execute()) {
+                    $_SESSION['message'] = ['type' => 'success', 'text' => 'Cart updated successfully'];
+                } else {
+                    $_SESSION['message'] = ['type' => 'error', 'text' => 'Error updating cart item!'];
+                }
+                $stmt->close();
+            } else {
+                // Insert new cart item
+                $stmt = $conn->prepare("INSERT INTO cartitems (cart_id, product_id, quantity) VALUES (?, ?, ?)");
+                $stmt->bind_param("iii", $cart_id, $product_id, $quantity);
+                if ($stmt->execute()) {
+                    $_SESSION['message'] = ['type' => 'success', 'text' => 'Product added to cart successfully'];
+                } else {
+                    $_SESSION['message'] = ['type' => 'error', 'text' => 'Error adding product to cart!'];
+                }
+                $stmt->close();
+            }
         }
     } else {
         $_SESSION['message'] = ['type' => 'error', 'text' => 'Insufficient stock!'];
     }
+
+    // Redirect back to this page so form resubmission doesn't happen on refresh
+    header("Location: view_product.php");
+    exit();
 }
 
 // Display success or error message using SweetAlert
@@ -59,61 +137,102 @@ if (isset($_SESSION['message'])) {
                 icon: '{$message['type']}'
             });
           </script>";
-    // Clear the message after displaying it
     unset($_SESSION['message']);
 }
 //Add to cart code end here
 
 
 // Fetch all products (Displaying Product list in card view)
-$sql = "SELECT product_id, name, description, price, stock, image_url FROM products";
+$sql    = "SELECT product_id, name, description, price, stock, image_url FROM products";
 $result = $conn->query($sql);
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<div class="container mt-5">
-    <h1 class="mb-4">All Products</h1>
-    <div id="productGrid" class="row">
-        <?php if ($result && $result->num_rows > 0) { 
-            while ($row = $result->fetch_assoc()) { ?>
-            <div class="col-md-4 product-card">
-                <div class="card mb-4">
-                    <img src="../img/<?php echo htmlspecialchars($row['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['name']); ?>" />
-                    <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
-                        <p class="card-text"><?php echo htmlspecialchars($row['description']); ?></p>
-                        <p class="card-text"><strong>Price: NRs. <?php echo htmlspecialchars($row['price']); ?></strong></p>
-                        <p class="card-text"> 
-                            <?php if ($row['stock'] > 0): ?>
-                                <span class="text-success">In Stock: <?php echo htmlspecialchars($row['stock']); ?></span>
+<div class="container my-5">
+    <h1 class="mb-4 text-center">All Products</h1>
+
+    <?php if ($result && $result->num_rows > 0): ?>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <?php while ($row = $result->fetch_assoc()): ?>
+                <?php
+                    $pid         = (int)$row['product_id'];
+                    $name        = htmlspecialchars($row['name']);
+                    $name_js     = htmlspecialchars($row['name'], ENT_QUOTES);
+                    $desc        = htmlspecialchars($row['description']);
+                    $short_desc  = mb_strimwidth($desc, 0, 80, '...');
+                    $price       = (float)$row['price'];
+                    $stock       = (int)$row['stock'];
+                    $image_url   = htmlspecialchars($row['image_url']);
+                ?>
+                <div class="col">
+                    <div class="card h-100 shadow-sm product-card">
+                        <div class="ratio ratio-4x3">
+                            <img src="../img/<?php echo $image_url ?: 'placeholder.png'; ?>"
+                                 class="card-img-top"
+                                 alt="<?php echo $name; ?>"
+                                 style="object-fit: cover;">
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title"><?php echo $name; ?></h5>
+                            <p class="card-text text-muted mb-2">
+                                <?php echo $short_desc; ?>
+                            </p>
+
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-primary">NRs. <?php echo number_format($price, 2); ?></span>
+                                <?php if ($stock > 0): ?>
+                                    <span class="badge bg-success">In stock: <?php echo $stock; ?></span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger">Out of stock</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if ($stock > 0): ?>
+                                <!-- First row: View Details + Add to Cart -->
+                                <div class="d-flex gap-2 mt-2">
+                                    <a href="product_details.php?id=<?php echo $pid; ?>"
+                                       class="btn btn-outline-info flex-fill">
+                                        View Details
+                                    </a>
+
+                                    <form method="post" class="flex-fill">
+                                        <input type="hidden" name="product_id" value="<?php echo $pid; ?>">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" name="addtocart"
+                                                class="btn btn-primary w-100">
+                                            Add to Cart
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Second row: Place Order -->
+                                <button class="btn btn-warning w-100 mt-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#checkoutModal"
+                                        onclick="setProductDetails(
+                                            <?php echo $pid; ?>,
+                                            '<?php echo $name_js; ?>',
+                                            <?php echo $price; ?>,
+                                            <?php echo $stock; ?>
+                                        )">
+                                    Place Order
+                                </button>
                             <?php else: ?>
-                                <span class="text-danger">Out of Stock</span>
+                                <button class="btn btn-secondary w-100 mt-3" disabled>
+                                    Out of Stock
+                                </button>
                             <?php endif; ?>
-                        </p>
-
-                        <?php if ($row['stock'] > 0): ?>
-                            <!-- View Product Details -->
-                            <a href="product_details.php?id=<?php echo $row['product_id']; ?>" class="btn btn-info w-100">View Details</a>
-                            <br>
-                            <br>
-                            
-                            <!-- Buy Now (Place Order Modal Trigger) -->
-                            <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#checkoutModal" onclick="setProductDetails(<?php echo $row['product_id']; ?>, '<?php echo $row['name']; ?>', <?php echo $row['price']; ?>, <?php echo $row['stock']; ?>)">Place Order</button>
-
-                        <?php else: ?>
-                            <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
-                        <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-            </div>
-        <?php } 
-        } else { ?>
-            <div class="col-12">
-                <p>No products available.</p>
-            </div>
-        <?php } ?>
-    </div>
+            <?php endwhile; ?>
+        </div>
+    <?php else: ?>
+        <div class="alert alert-info text-center">
+            No products available.
+        </div>
+    <?php endif; ?>
 </div>
 
 <!-- Modal for Checkout -->
@@ -166,17 +285,17 @@ $result = $conn->query($sql);
                 </select>
             </div>
 
-            <!-- Credit Card Details (show when Credit Card is selected) -->
+            <!-- Credit Card Details -->
             <div id="credit_card_details" class="payment-fields mb-3" style="display: none;">
                 <label for="credit_card_number" class="form-label">Card Number</label>
                 <input type="text" name="credit_card_number" class="form-control" id="credit_card_number" placeholder="Enter your card number">
-                <label for="credit_card_expiry" class="form-label">Expiry Date</label>
+                <label for="credit_card_expiry" class="form-label mt-2">Expiry Date</label>
                 <input type="text" name="credit_card_expiry" class="form-control" id="credit_card_expiry" placeholder="MM/YY">
-                <label for="credit_card_cvc" class="form-label">CVC</label>
+                <label for="credit_card_cvc" class="form-label mt-2">CVC</label>
                 <input type="text" name="credit_card_cvc" class="form-control" id="credit_card_cvc" placeholder="Enter CVC">
             </div>
 
-            <!-- Mobile Payment Details (show when Mobile Payment is selected) -->
+            <!-- Mobile Payment Details -->
             <div id="mobile_payment_details" class="payment-fields mb-3" style="display: none;">
                 <label for="mobile_payment_number" class="form-label">Mobile Number</label>
                 <input type="text" name="mobile_payment_number" class="form-control" id="mobile_payment_number" placeholder="Enter your mobile number">
@@ -190,7 +309,6 @@ $result = $conn->query($sql);
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="../js/checkout.js"></script>
 
 <?php // include('customer/layout/cfooter.php'); ?>

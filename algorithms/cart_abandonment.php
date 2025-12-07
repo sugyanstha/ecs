@@ -1,98 +1,67 @@
 ﻿<?php
-// Cart Abandonment Detection (24h default)
-// Run via CLI/cron: php algorithms/cart_abandonment.php
-// Designed to be reused from Laravel jobs, cron, or manual admin triggers.
-declare(strict_types=1);
+/**
+ * Only Cart Expiry Helper
+ * Purpose: Provide expiry time for the customer's active cart
+ */
 
-require_once __DIR__ . '/../database/connection.php';
+require_once __DIR__ . '/../database/connection.php'; // $conn
 
-$reminderWindowHours = 24;
-
-if (php_sapi_name() === 'cli' || basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'])) {
-    runCartAbandonment($conn, $reminderWindowHours);
-}
-
-function runCartAbandonment(mysqli $conn, int $windowHours): array
-{
-    $stats = ['found' => 0, 'reminded' => 0];
-
-    try {
-        $abandonedCarts = findAbandonedCarts($conn, $windowHours);
-        $stats['found'] = count($abandonedCarts);
-
-        foreach ($abandonedCarts as $cart) {
-            if (triggerCartReminder($cart)) {
-                $stats['reminded']++;
-            }
-        }
-    } catch (Throwable $e) {
-        error_log('[cart_abandonment] ' . $e->getMessage());
-    }
-
-    return $stats;
-}
+// For demonstration/testing: 1 minute expiry
+// In production change to: 60 (1 hour) or 1440 (1 day)
+$CART_EXPIRY_MINUTES = 1;
 
 /**
- * Fetch carts with items that have not led to any order since they were created.
+ * Fetch latest cart with items and compute expiry time.
+ * Returns:
+ * [
+ *   'cart_id' => int,
+ *   'created_at' => 'Y-m-d H:i:s',
+ *   'expiry_at' => 'Y-m-d H:i:s',
+ *   'item_count' => int,
+ *   'total_value' => float
+ * ]
+ * OR null if no cart with items exists
  */
-function findAbandonedCarts(mysqli $conn, int $windowHours): array
+function getUserCartExpiryInfo(int $cid)
 {
-    $cutoff = (new DateTimeImmutable("-{$windowHours} hours"))->format('Y-m-d H:i:s');
+    global $conn, $CART_EXPIRY_MINUTES;
 
-    $sql = "SELECT c.cart_id,
-                   c.cid,
-                   c.created_at,
-                   cust.email,
-                   cust.name,
-                   COUNT(ci.cart_item_id) AS item_count,
-                   GROUP_CONCAT(DISTINCT p.name ORDER BY p.name SEPARATOR ', ') AS product_names
-            FROM cart c
-            INNER JOIN cartitems ci ON ci.cart_id = c.cart_id
-            INNER JOIN products p ON p.product_id = ci.product_id
-            INNER JOIN customer cust ON cust.cid = c.cid
-            LEFT JOIN orders o
-                ON o.cid = c.cid
-               AND o.created_at >= c.created_at
-               AND o.status <> 'canceled'
-            WHERE c.created_at <= ?
-            GROUP BY c.cart_id, c.cid, c.created_at, cust.email, cust.name
-            HAVING COUNT(o.order_id) = 0";
+    $sql = "
+        SELECT 
+            c.cart_id,
+            c.created_at,
+            COALESCE(SUM(ci.quantity), 0) AS item_count,
+            COALESCE(SUM(ci.quantity * p.price), 0) AS total_value
+        FROM cart c
+        INNER JOIN cartitems ci ON ci.cart_id = c.cart_id
+        INNER JOIN products p ON p.product_id = ci.product_id
+        WHERE c.cid = ?
+        GROUP BY c.cart_id, c.created_at
+        HAVING item_count > 0
+        ORDER BY c.created_at DESC
+        LIMIT 1
+    ";
 
     $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        throw new RuntimeException('Prepare failed: ' . $conn->error);
-    }
+    if (!$stmt) return null;
 
-    $stmt->bind_param('s', $cutoff);
+    $stmt->bind_param("i", $cid);
     $stmt->execute();
     $result = $stmt->get_result();
+    $cart = $result->fetch_assoc();
+    $stmt->close();
 
-    return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-}
+    if (!$cart) return null;
 
-/**
- * Send reminder using PHP mail() and log as fallback.
- */
-function triggerCartReminder(array $cart): bool
-{
-    $email = $cart['email'] ?? null;
-    $name = $cart['name'] ?? 'there';
-    $itemCount = (int)($cart['item_count'] ?? 0);
-    $productList = $cart['product_names'] ?? '';
+    $createdAt = $cart['created_at'];
+    $expiryTimestamp = strtotime($createdAt) + ($CART_EXPIRY_MINUTES * 60);
+    $expiryFormatted = date('Y-m-d H:i:s', $expiryTimestamp);
 
-    $subject = 'You left items in your cart';
-    $body = sprintf(
-        "Hi %s, you still have %d item(s) waiting: %s. Checkout within the next few hours to complete your order.",
-        $name,
-        $itemCount,
-        $productList
-    );
-
-    $sent = false;
-    if ($email) {
-        $sent = @mail($email, $subject, $body);
-    }
-
-    error_log(sprintf('[cart_abandonment] reminder %s for %s (cart %s)', $sent ? 'sent' : 'attempted', $email ?: 'unknown', $cart['cart_id'] ?? 'n/a'));
-    return $sent;
+    return [
+        'cart_id'     => (int)$cart['cart_id'],
+        'created_at'  => $createdAt,
+        'expiry_at'   => $expiryFormatted,
+        'item_count'  => (int)$cart['item_count'],
+        'total_value' => (float)$cart['total_value']
+    ];
 }
